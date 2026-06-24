@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>엘마켓21 — 통합 관리 대시보드 v4</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f8f7f4;--bg2:#fff;--bg3:#f0ede8;
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --border:#e5e2dc;--border2:#d0ccc4;
+  --kakao:#FBBF24;--kakao-l:#FEF9EE;--kakao-d:#92400E;
+  --dangn:#1D9E75;--dangn-l:#E8F8F1;--dangn-d:#065F46;
+  --nplace:#03C75A;--nplace-l:#E8FBF0;--nplace-d:#016633;
+  --nblog:#00B4D8;--nblog-l:#E0F7FC;--nblog-d:#006080;
+  --green:#1D9E75;--green-l:#E8F8F1;--green-d:#065F46;
+  --blue:#185FA5;--blue-l:#E6F1FB;
+  --purple:#534AB7;--purple-l:#EEEDFE;--purple-d:#3C3489;
+  --amber:#BA7517;--amber-l:#FAEEDA;--amber-d:#633806;
+  --red:#A32D2D;--red-l:#FCEBEB;
+  --teal:#0F6E56;--teal-l:#E1F5EE;
+  --gray:#5F5E5A;--gray-l:#F1EFE8;
+  --r:10px;--rs:6px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  /* 담당자 색상 */
+  --P:#185FA5;--H:#9333EA;--B:#EA580C;--K:#DC2626;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;display:flex;flex-direction:column}
+.app{display:flex;flex:1;overflow:hidden}
+.sidebar{width:230px;min-width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;transition:transform 0.25s}
+.sidebar-logo{padding:16px 18px 12px;border-bottom:1px solid var(--border)}
+.sidebar-logo h1{font-size:15px;font-weight:700}
+.sidebar-logo p{font-size:11px;color:var(--text3);margin-top:2px}
+.nav-section{font-size:10px;color:var(--text3);padding:12px 18px 4px;text-transform:uppercase;letter-spacing:0.6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:13px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;transition:all 0.12s}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg3);color:var(--text);border-left-color:var(--green);font-weight:500}
+.sidebar-footer{margin-top:auto;padding:14px 18px;border-top:1px solid var(--border)}
+.lbl{font-size:11px;color:var(--text3);margin-bottom:7px}
+.member-row{display:flex;gap:6px;flex-wrap:wrap}
+.mbadge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;color:#fff}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0}
+.topbar h2{font-size:16px;font-weight:700}
+.menu-btn{display:none;background:none;border:none;font-size:22px;cursor:pointer;padding:0 8px 0 0;color:var(--text)}
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 20px calc(var(--safe-b)+16px)}
+
+.page{display:none}.page.active{display:block}
+.tview{display:none}.tview.active{display:block}
+
+/* 공통 */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px}
+.ct{font-size:13px;font-weight:700;margin-bottom:10px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.sc{background:var(--bg3);border-radius:var(--r);padding:12px 14px}
+.sc .sl{font-size:11px;color:var(--text2);margin-bottom:4px}
+.sc .sv{font-size:20px;font-weight:700}
+.sc .ss{font-size:10px;color:var(--text3);margin-top:2px}
+
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.bg-g{background:var(--green-l);color:var(--green-d)}
+.bg-b{background:var(--blue-l);color:var(--blue)}
+.bg-p{background:var(--purple-l);color:var(--purple-d)}
+.bg-a{background:var(--amber-l);color:var(--amber-d)}
+.bg-gr{background:var(--gray-l);color:var(--gray)}
+.bg-r{background:var(--red-l);color:var(--red)}
+.bg-t{background:var(--teal-l);color:var(--teal)}
+
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:var(--text3);font-weight:400;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase}
+td{padding:8px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+.pb{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.pf{height:100%;border-radius:2px}
+.ci2{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.ci2:last-child{border-bottom:none}
+.ci2 input{width:14px;height:14px;accent-color:var(--green);cursor:pointer}
+.ci2 label{flex:1;cursor:pointer}
+
+/* 플랫폼 태그 */
+.pt{display:inline-flex;align-items:center;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:500;margin-right:2px}
+.pt-k{background:var(--kakao-l);color:var(--kakao-d);border:0.5px solid #FDE68A}
+.pt-d{background:var(--dangn-l);color:var(--dangn-d);border:0.5px solid #86EFAC}
+.pt-np{background:var(--nplace-l);color:var(--nplace-d);border:0.5px solid #6EE7A0}
+.pt-nb{background:var(--nblog-l);color:var(--nblog-d);border:0.5px solid #67E8F9}
+
+/* 담당자 뱃지 */
+.mb-P{background:var(--P);color:#fff}
+.mb-H{background:var(--H);color:#fff}
+.mb-B{background:var(--B);color:#fff}
+.mb-K{background:var(--K);color:#fff}
+.mdot-wrap{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+
+/* 업체 카드 (다이어리) */
+.client-diary{border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;overflow:hidden}
+.cd-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.cd-header:hover{background:var(--bg3)}
+.cd-name{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.cd-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cd-body{border-top:1px solid var(--border);padding:0}
+.cd-body.hidden{display:none}
+.diary-row{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:12px}
+.diary-row:last-child{border-bottom:none}
+.diary-row:hover{background:var(--bg3)}
+.dr-date{font-size:11px;color:var(--text3);min-width:70px;flex-shrink:0;line-height:1.5}
+.dr-content{flex:1}
+.dr-title{font-size:12px;font-weight:500;line-height:1.5}
+.dr-tags{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap}
+.dr-tag{font-size:10px;padding:1px 6px;border-radius:3px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text2)}
+.dr-stats{display:flex;gap:10px;padding:10px 16px;background:var(--bg3);border-top:0.5px solid var(--border)}
+.dr-stat{font-size:11px;color:var(--text2)}
+.dr-stat strong{font-weight:700;color:var(--text)}
+
+/* 필터 */
+.fw{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.fbtn{font-size:11px;padding:4px 10px;border:0.5px solid var(--border);border-radius:20px;cursor:pointer;background:var(--bg2);color:var(--text2);font-family:inherit}
+.fbtn.fa{background:var(--text);color:#fff;border-color:var(--text)}
+.fbtn.fP{background:var(--P);color:#fff;border-color:var(--P)}
+.fbtn.fH{background:var(--H);color:#fff;border-color:var(--H)}
+.fbtn.fB{background:var(--B);color:#fff;border-color:var(--B)}
+.fbtn.fK{background:var(--K);color:#fff;border-color:var(--K)}
+.sb{display:flex;align-items:center;gap:8px;padding:8px 12px;border:0.5px solid var(--border);border-radius:var(--rs);background:var(--bg3);margin-bottom:12px}
+.sb input{border:none;background:transparent;font-size:13px;color:var(--text);width:100%;outline:none;font-family:inherit}
+
+/* 캘린더 */
+.cal-nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-nav-bar h3{font-size:14px;font-weight:700}
+.cal-nav-bar button{background:var(--bg3);border:none;padding:5px 12px;border-radius:var(--rs);cursor:pointer;font-size:13px;color:var(--text);font-family:inherit}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.chdr{text-align:center;font-size:10px;color:var(--text3);padding:4px 0;font-weight:500}
+.cday{min-height:90px;border:0.5px solid var(--border);border-radius:5px;padding:4px 3px;background:var(--bg2);cursor:pointer;transition:background 0.1s}
+.cday:hover,.cday:active{background:var(--bg3)}
+.cday.other{opacity:0.2;pointer-events:none}
+.cday.today{border:1.5px solid var(--blue)}
+.cday.holi{background:#FEFCF8}
+.day-num{font-size:10px;color:var(--text3);margin-bottom:2px;display:flex;justify-content:space-between;align-items:center}
+.hn{font-size:8px;color:var(--red);font-weight:700}
+.cki{border-radius:3px;padding:2px 3px;margin-bottom:1px;display:flex;align-items:flex-start;gap:3px}
+.cki input{width:10px;height:10px;margin-top:1px;flex-shrink:0;cursor:pointer}
+.cki-text{font-size:8.5px;line-height:1.3;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+.cki.done .cki-text{text-decoration:line-through;opacity:0.4}
+.cki-k{background:var(--kakao-l);border:0.5px solid #FDE68A}.cki-k input{accent-color:var(--kakao)}
+.cki-d{background:var(--dangn-l);border:0.5px solid #86EFAC}.cki-d input{accent-color:var(--dangn)}
+.cki-np{background:var(--nplace-l);border:0.5px solid #6EE7A0}.cki-np input{accent-color:var(--nplace)}
+.cki-nb{background:var(--nblog-l);border:0.5px solid #67E8F9}.cki-nb input{accent-color:var(--nblog)}
+.cki.done{background:#f3f4f6!important;border-color:#e5e7eb!important}
+.dp-bar{display:flex;gap:1px;margin-top:2px}
+.dp-s{flex:1;height:3px;border-radius:1px;background:var(--border)}
+.dp-s.k-on{background:var(--kakao)}.dp-s.d-on{background:var(--dangn)}.dp-s.np-on{background:var(--nplace)}.dp-s.nb-on{background:var(--nblog)}
+
+/* 트래커 탭 */
+.ttabs{display:flex;border-bottom:0.5px solid var(--border);margin-bottom:14px}
+.ttab{padding:8px 16px;font-size:13px;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.ttab.active{color:var(--text);border-bottom-color:var(--green);font-weight:500}
+
+/* 플랫폼 집계 카드 */
+.plat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.plat-card{border:0.5px solid var(--border);border-radius:var(--r);padding:12px 14px;background:var(--bg2)}
+.pc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.pc-pct{font-size:20px;font-weight:700}
+.prog-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width 0.4s}
+.prog-remain{font-size:10px;color:var(--text3);text-align:right;margin-top:3px}
+.mini-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.mini-fill{height:100%;border-radius:2px}
+
+/* 바텀시트 */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center}
+.modal-ov.open{display:flex}
+.modal-box{background:var(--bg2);border-radius:16px 16px 0 0;padding:0 0 calc(var(--safe-b)+16px);width:100%;max-width:560px;max-height:82vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.3s ease}
+.modal-box.open{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0}
+.modal-head{padding:12px 18px 10px;border-bottom:0.5px solid var(--border);flex-shrink:0}
+.modal-head h3{font-size:14px;font-weight:700}
+.modal-sub{font-size:11px;color:var(--text3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.modal-body{overflow-y:auto;padding:0 18px;flex:1;-webkit-overflow-scrolling:touch}
+.modal-sec{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;padding:10px 0 5px}
+.modal-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);min-height:44px}
+.modal-item:last-child{border-bottom:none}
+.modal-item input[type=checkbox]{width:17px;height:17px;cursor:pointer;flex-shrink:0}
+.modal-item-info{flex:1}
+.modal-item-client{font-size:13px;font-weight:700}
+.modal-item-kw{font-size:12px;color:var(--text2);margin-top:1px}
+.modal-item.done .modal-item-client,.modal-item.done .modal-item-kw{text-decoration:line-through;opacity:0.45}
+
+/* 작업추가 모달 */
+.log-modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center}
+.log-modal-ov.open{display:flex}
+.log-modal-box{background:var(--bg2);border-radius:var(--r);padding:20px;width:350px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
+.log-modal-box h3{font-size:14px;font-weight:700;margin-bottom:14px}
+.mclose{float:right;cursor:pointer;font-size:20px;color:var(--text3);line-height:1}
+.fr{margin-bottom:11px}
+.fr label{display:block;font-size:12px;color:var(--text2);margin-bottom:3px}
+.fr input,.fr select,.fr textarea{width:100%;padding:7px 10px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rs);background:var(--bg2);color:var(--text);font-family:inherit}
+.fr textarea{height:70px;resize:vertical}
+.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.btn-p{background:var(--text);color:#fff;border:none;padding:7px 14px;border-radius:var(--rs);cursor:pointer;font-size:13px;font-family:inherit}
+.btn-s{background:#fff;color:var(--text);border:0.5px solid var(--border2);padding:7px 14px;border-radius:var(--rs);cursor:pointer;font-size:13px;font-family:inherit}
+
+/* 해지 스타일 */
+.terminated{opacity:0.5}
+.terminated .cd-name{text-decoration:line-through}
+
+/* 세팅 */
+.tip-block{background:var(--bg3);border-left:3px solid var(--green);padding:8px 12px;border-radius:0 var(--rs) var(--rs) 0;margin-bottom:8px}
+.tip-title{font-size:12px;font-weight:700;color:var(--teal);margin-bottom:2px}
+.contract-note div{font-size:12px;line-height:2;color:var(--text2)}
+.contract-note div::before{content:"• "}
+
+/* 통계 */
+.stat-section{border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.stat-head{padding:10px 14px;background:var(--bg3);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.stat-body{padding:10px 14px}
+.holi-badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:500}
+.hb-red{background:var(--red-l);color:var(--red)}.hb-blue{background:#EFF6FF;color:#1d4ed8}
+.hb-brown{background:#FEF3C7;color:#78350F}.hb-green{background:var(--green-l);color:var(--green-d)}
+.hb-yellow{background:#FEF9C3;color:#713F12}
+
+@media(max-width:700px){
+  .sidebar{position:fixed;top:0;left:0;height:100%;z-index:150;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:140}
+  .sidebar-overlay.open{display:block}
+  .menu-btn{display:block}
+  .scroll-area{padding:12px 12px calc(var(--safe-b)+12px)}
+  .g4{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr}
+  .g2{grid-template-columns:1fr}
+  .plat-grid{grid-template-columns:1fr}
+  table{font-size:11px}th,td{padding:6px 5px}
+}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sb-ov" onclick="closeSidebar()"></div>
+<div class="app">
+
+<!-- 사이드바 -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <h1>엘마켓21</h1>
+    <p>카카오·당근·네이버 대행</p>
+  </div>
+  <div class="nav-section">대시보드</div>
+  <div class="nav-item active" onclick="showPage('dashboard',this)">📊 현황 대시보드</div>
+  <div class="nav-item" onclick="showPage('tracker',this)">✅ 콘텐츠 트래커</div>
+  <div class="nav-section">업체 관리</div>
+  <div class="nav-item" onclick="showPage('clients',this)">🏪 전체 업체 목록</div>
+  <div class="nav-item" onclick="showPage('diary',this)">📓 업체별 다이어리</div>
+  <div class="nav-item" onclick="showPage('stats',this)">📈 통계 & 보고서</div>
+  <div class="nav-section">도구</div>
+  <div class="nav-item" onclick="showPage('calendar',this)">📅 마케팅 캘린더</div>
+  <div class="nav-item" onclick="showPage('setup',this)">⚙️ 채널 세팅 체크</div>
+  <div class="nav-item" onclick="showPage('marketing',this)">💡 마케팅 팁</div>
+  <div class="nav-item" onclick="showPage('contract',this)">📄 계약 현황</div>
+  <div class="sidebar-footer">
+    <div class="lbl">담당자</div>
+    <div class="member-row">
+      <span class="mbadge mb-P">P 박신영</span>
+      <span class="mbadge mb-H">H 황정임</span>
+      <span class="mbadge mb-B">B 배휘경</span>
+      <span class="mbadge mb-K">K 김옥진(대표)</span>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:8px">2026.06.24 기준</div>
+  </div>
+</div>
+
+<!-- 메인 -->
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <h2 id="page-title">현황 대시보드</h2>
+    </div>
+    <div style="display:flex;gap:7px;align-items:center">
+      <span style="font-size:11px;color:var(--text3)" id="today-date"></span>
+      <button class="btn-p" style="font-size:12px;padding:5px 12px" onclick="openLogModal()">＋ 작업 추가</button>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+
+  <!-- ── 대시보드 ── -->
+  <div id="page-dashboard" class="page active">
+    <div class="g4">
+      <div class="sc"><div class="sl">활성 업체</div><div class="sv" id="dash-active">0</div><div class="ss">계약 진행중</div></div>
+      <div class="sc"><div class="sl">6월 완료율</div><div class="sv" id="dash-pct">0%</div><div class="ss">4개 플랫폼 합산</div></div>
+      <div class="sc"><div class="sl">이번달 발행</div><div class="sv" id="dash-done">0</div><div class="ss">건 완료</div></div>
+      <div class="sc"><div class="sl">해지 업체</div><div class="sv" id="dash-terminated">0</div><div class="ss">재활성화 가능</div></div>
+    </div>
+
+    <!-- 담당자별 현황 -->
+    <div class="g2">
+      <div class="card">
+        <div class="ct">👥 담당자별 현황</div>
+        <div id="member-stats"></div>
+      </div>
+      <div class="card">
+        <div class="ct">📈 플랫폼별 완료율</div>
+        <div style="margin-bottom:9px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>📣 카카오채널</span><span id="dk-txt" style="color:var(--text3)">-</span></div>
+          <div class="pb" style="height:5px"><div class="pf" id="dk-bar" style="width:0%;background:var(--kakao)"></div></div>
+        </div>
+        <div style="margin-bottom:9px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>🥕 당근마켓</span><span id="dd-txt" style="color:var(--text3)">-</span></div>
+          <div class="pb" style="height:5px"><div class="pf" id="dd-bar" style="width:0%;background:var(--dangn)"></div></div>
+        </div>
+        <div style="margin-bottom:9px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>🗺️ 네이버플레이스</span><span style="color:var(--text3);font-size:11px">준비중</span></div>
+          <div class="pb" style="height:5px"><div class="pf" style="width:0%;background:var(--nplace)"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>📝 네이버블로그</span><span id="dnb-txt" style="color:var(--text3)">-</span></div>
+          <div class="pb" style="height:5px"><div class="pf" id="dnb-bar" style="width:0%;background:var(--nblog)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ct">🕐 최근 변경 이력</div>
+      <div id="recent-history"></div>
+    </div>
+  </div>
+
+  <!-- ── 콘텐츠 트래커 ── -->
+  <div id="page-tracker" class="page">
+    <div class="ttabs">
+      <button class="ttab active" onclick="showTTab('boss',this)">👑 대표 현황</button>
+      <button class="ttab" onclick="showTTab('worker',this)">✏️ 담당자 작업</button>
+    </div>
+    <div id="tview-boss" class="tview active">
+      <div class="plat-grid">
+        <div class="plat-card"><div class="pc-head"><span class="pt pt-k" style="font-size:12px;padding:3px 10px">📣 카카오채널</span><span class="pc-pct" id="k-pct" style="color:var(--kakao-d)">0%</span></div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px"><strong id="k-done">0</strong> / <span id="k-total">0</span>건</div>
+          <div class="prog-bar"><div class="prog-fill" id="k-bar" style="width:0%;background:var(--kakao)"></div></div><div class="prog-remain" id="k-rem">—</div></div>
+        <div class="plat-card"><div class="pc-head"><span class="pt pt-d" style="font-size:12px;padding:3px 10px">🥕 당근마켓</span><span class="pc-pct" id="d-pct" style="color:var(--dangn-d)">0%</span></div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px"><strong id="d-done">0</strong> / <span id="d-total">0</span>건</div>
+          <div class="prog-bar"><div class="prog-fill" id="d-bar" style="width:0%;background:var(--dangn)"></div></div><div class="prog-remain" id="d-rem">—</div></div>
+        <div class="plat-card"><div class="pc-head"><span class="pt pt-np" style="font-size:12px;padding:3px 10px">🗺️ 네이버플레이스</span><span style="font-size:13px;color:var(--nplace-d);font-weight:700">준비중</span></div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">업체 추가 시 자동집계</div>
+          <div class="prog-bar"><div class="prog-fill" style="width:0%;background:var(--nplace)"></div></div></div>
+        <div class="plat-card"><div class="pc-head"><span class="pt pt-nb" style="font-size:12px;padding:3px 10px">📝 네이버블로그</span><span class="pc-pct" id="nb-pct" style="color:var(--nblog-d)">0%</span></div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px"><strong id="nb-done">0</strong> / <span id="nb-total">0</span>건</div>
+          <div class="prog-bar"><div class="prog-fill" id="nb-bar" style="width:0%;background:var(--nblog)"></div></div><div class="prog-remain" id="nb-rem">—</div></div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table><thead><tr><th>업체명</th><th>담당</th><th>카카오</th><th>당근</th><th>블로그</th><th>완료율</th></tr></thead>
+        <tbody id="boss-tbody"></tbody></table>
+      </div>
+    </div>
+    <div id="tview-worker" class="tview">
+      <div class="cal-nav-bar">
+        <button onclick="chM(-1)">‹</button><h3 id="cal-label"></h3><button onclick="chM(1)">›</button>
+      </div>
+      <div class="fw" style="margin-bottom:8px">
+        <button class="fbtn fa" onclick="fPlat('all',this)">전체</button>
+        <button class="fbtn" onclick="fPlat('kakao',this)">📣카카오</button>
+        <button class="fbtn" onclick="fPlat('dangn',this)">🥕당근</button>
+        <button class="fbtn" onclick="fPlat('nblog',this)">📝블로그</button>
+        <select id="msel" onchange="renderCal()" style="font-size:11px;padding:4px 8px;border:0.5px solid var(--border);border-radius:20px;background:var(--bg2);color:var(--text);font-family:inherit;margin-left:auto">
+          <option value="all">전체 담당자</option>
+          <option value="P">P 박신영</option>
+          <option value="H">H 황정임</option>
+          <option value="B">B 배휘경</option>
+          <option value="K">K 김옥진</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:11px;color:var(--text2)">
+        <span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--kakao-l);border:0.5px solid #FDE68A;vertical-align:middle"></span> 카카오</span>
+        <span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--dangn-l);border:0.5px solid #86EFAC;vertical-align:middle"></span> 당근</span>
+        <span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--nblog-l);border:0.5px solid #67E8F9;vertical-align:middle"></span> 블로그</span>
+        <span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:#f3f4f6;border:0.5px solid #e5e7eb;vertical-align:middle"></span> 완료</span>
+      </div>
+      <div class="cgrid"><div class="chdr">일</div><div class="chdr">월</div><div class="chdr">화</div><div class="chdr">수</div><div class="chdr">목</div><div class="chdr">금</div><div class="chdr">토</div></div>
+      <div class="cgrid" id="cal-body" style="margin-top:2px"></div>
+    </div>
+  </div>
+
+  <!-- ── 전체 업체 목록 ── -->
+  <div id="page-clients" class="page">
+    <div class="sb">🔍<input type="text" placeholder="업체명 검색..." onkeyup="fClients(this.value)" id="csearch"></div>
+    <div class="fw">
+      <button class="fbtn fa" onclick="fType('전체',this)">전체</button>
+      <button class="fbtn fP" onclick="fType('P',this)">P 박신영</button>
+      <button class="fbtn fH" onclick="fType('H',this)">H 황정임</button>
+      <button class="fbtn fB" onclick="fType('B',this)">B 배휘경</button>
+      <button class="fbtn" onclick="fType('해지',this)">해지</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table><thead><tr><th>업체명</th><th>플랫폼</th><th>가입형</th><th>담당</th><th>상태</th><th>비고</th></tr></thead>
+      <tbody id="ctbody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ── 업체별 다이어리 ── -->
+  <div id="page-diary" class="page">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="fw" style="margin:0">
+        <button class="fbtn fa" onclick="filterDiary('전체',this)">전체</button>
+        <button class="fbtn fP" onclick="filterDiary('P',this)">P 담당</button>
+        <button class="fbtn fH" onclick="filterDiary('H',this)">H 담당</button>
+        <button class="fbtn fB" onclick="filterDiary('B',this)">B 담당</button>
+      </div>
+      <button class="btn-p" style="font-size:12px;padding:5px 12px" onclick="openLogModal()">＋ 추가</button>
+    </div>
+    <div id="diary-list"></div>
+  </div>
+
+  <!-- ── 통계 & 보고서 ── -->
+  <div id="page-stats" class="page">
+    <div class="fw">
+      <button class="fbtn fa" onclick="filterStats('전체',this)">전체 업체</button>
+      <button class="fbtn fP" onclick="filterStats('P',this)">P 담당</button>
+      <button class="fbtn fH" onclick="filterStats('H',this)">H 담당</button>
+      <button class="fbtn fB" onclick="filterStats('B',this)">B 담당</button>
+    </div>
+    <div id="stats-list"></div>
+  </div>
+
+  <!-- ── 마케팅 캘린더 ── -->
+  <div id="page-calendar" class="page">
+    <div class="cal-nav-bar">
+      <button onclick="chMK(-1)">‹</button><h3 id="kcal-label"></h3><button onclick="chMK(1)">›</button>
+    </div>
+    <div class="cgrid"><div class="chdr">일</div><div class="chdr">월</div><div class="chdr">화</div><div class="chdr">수</div><div class="chdr">목</div><div class="chdr">금</div><div class="chdr">토</div></div>
+    <div class="cgrid" id="kcal-body" style="margin-top:2px"></div>
+    <div id="kcal-detail" style="display:none;margin-top:12px;border:0.5px solid var(--border);border-radius:var(--r);padding:14px;background:var(--bg2)">
+      <div style="float:right;cursor:pointer;font-size:18px;color:var(--text3)" onclick="document.getElementById('kcal-detail').style.display='none'">×</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:10px" id="kcal-dtitle"></div>
+      <div id="kcal-dbody"></div>
+    </div>
+  </div>
+
+  <!-- ── 채널 세팅 ── -->
+  <div id="page-setup" class="page">
+    <div class="card" style="border:1.5px solid var(--green);margin-bottom:14px">
+      <div class="ct" style="color:var(--green)">🔗 구글 시트 자동 저장 연동</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.8">
+        Google Apps Script 웹앱 URL을 입력하면 <strong>작업 추가</strong> 시 구글 시트에 자동으로 행이 추가됩니다.
+      </div>
+      <div class="fr" style="margin-bottom:8px">
+        <label>Apps Script 웹앱 URL</label>
+        <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/..." 
+          style="width:100%;padding:7px 10px;font-size:12px;border:0.5px solid var(--border2);border-radius:var(--rs);background:var(--bg2);color:var(--text);font-family:inherit;margin-top:4px">
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn-p" style="font-size:12px;padding:6px 14px" onclick="saveGASUrl()">저장</button>
+        <span id="gas-save-msg" style="font-size:11px;color:var(--green);display:none">✅ 저장됨!</span>
+        <span id="gas-status-dot" style="font-size:11px;color:var(--text3)"></span>
+      </div>
+      <div style="margin-top:12px;background:var(--bg3);border-radius:var(--rs);padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:6px">📋 Apps Script 코드 — 구글 시트에 붙여넣기</div>
+        <pre id="gas-code-block" style="font-size:10px;color:var(--text2);white-space:pre-wrap;line-height:1.6;font-family:monospace;max-height:160px;overflow:auto">function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("작업현황") || ss.insertSheet("작업현황");
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(["연월","날짜","업체명","담당자","작업내용","유형","플랫폼","상태","완료","메모","이미지수","입력시각"]);
+    }
+    sheet.appendRow([
+      data.yearMonth, data.date, data.client, data.assignee,
+      data.content, data.type, data.platform, "진행중",
+      false, data.memo||"", (data.imageCount||0)+"장", new Date()
+    ]);
+    return ContentService.createTextOutput(JSON.stringify({result:"success"}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({result:"error",msg:err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</pre>
+        <button onclick="copyGASCode()" style="margin-top:6px;font-size:11px;padding:4px 12px;border:0.5px solid var(--border2);border-radius:var(--rs);cursor:pointer;background:var(--bg2);font-family:inherit">📋 코드 복사</button>
+        <span id="copy-msg" style="font-size:11px;color:var(--green);margin-left:8px;display:none">복사됨!</span>
+      </div>
+    </div>
+    <div class="card" style="background:var(--blue-l);border-color:#B5D4F4;margin-bottom:14px">
+      <div class="ct" style="color:var(--blue)">⚙️ 카카오톡 채널 세팅 — 협업 진행 중</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.8">
+        채널 세팅은 별도 협업팀과 진행 중입니다. 세팅 완료 후 담당자에게 인계되며,<br>
+        대행 계약 체결 시 담당자를 배정합니다.
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <label style="font-size:12px;color:var(--text2)">업체 선택</label>
+      <select id="sclient" onchange="renderSetup()" style="margin-top:5px;width:100%;padding:7px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--rs);background:var(--bg2);color:var(--text);font-family:inherit">
+        <option>미소힐링샵 (신규)</option><option>혜인한복공방 (신규-5월계약)</option>
+        <option>소공유통 (재활성화 대기)</option>
+      </select>
+    </div>
+    <div id="scklist"></div>
+  </div>
+
+  <!-- ── 마케팅 팁 ── -->
+  <div id="page-marketing" class="page">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">2026년 주요 마케팅 기념일 + 플랫폼별 콘텐츠 아이디어</p>
+    <div id="mtips"></div>
+  </div>
+
+  <!-- ── 계약 현황 ── -->
+  <div id="page-contract" class="page">
+    <div class="g2">
+      <div class="card"><div class="ct">기업용 패키지</div>
+        <table>
+          <tr><td style="font-weight:700">신규셋팅</td><td><span class="badge bg-g">100,000원</span></td><td style="font-size:11px;color:var(--text3)">채널개설+기본셋팅</td></tr>
+          <tr><td style="font-weight:700">기본형</td><td><span class="badge bg-a">350,000원</span></td><td style="font-size:11px;color:var(--text3)">소식 월12 + 메시지 월2 (총 14건)</td></tr>
+          <tr><td style="font-weight:700">고급형</td><td><span class="badge bg-p">500,000원</span></td><td style="font-size:11px;color:var(--text3)">소식 월18 + 메시지 월2 (총 20건)</td></tr>
+        </table>
+      </div>
+      <div class="card"><div class="ct">일반 패키지</div>
+        <table>
+          <tr><td style="font-weight:700">신규셋팅</td><td><span class="badge bg-g">100,000원</span></td><td style="font-size:11px;color:var(--text3)">채널개설+기본셋팅</td></tr>
+          <tr><td style="font-weight:700">실속형</td><td><span class="badge bg-gr">95,000원</span></td><td style="font-size:11px;color:var(--text3)">소식 월6 / 광고 월1</td></tr>
+          <tr><td style="font-weight:700">기본형</td><td><span class="badge bg-a">150,000원</span></td><td style="font-size:11px;color:var(--text3)">소식 월12 / 광고 월2</td></tr>
+          <tr><td style="font-weight:700">고급형</td><td><span class="badge bg-p">175,000원</span></td><td style="font-size:11px;color:var(--text3)">소식 월20 / 광고 월3</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="card"><div class="ct">네이버 대행 (준비중)</div>
+      <table>
+        <thead><tr><th>구분</th><th>서비스</th><th>금액</th><th>상태</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:700">네이버플레이스</td><td style="font-size:11px;color:var(--text2)">플레이스 최적화·리뷰관리</td><td><span class="badge bg-gr">미정</span></td><td><span class="badge" style="background:var(--nplace-l);color:var(--nplace-d)">준비중</span></td></tr>
+          <tr><td style="font-weight:700">네이버블로그</td><td style="font-size:11px;color:var(--text2)">블로그 포스팅·키워드 최적화</td><td><span class="badge bg-gr">미정</span></td><td><span class="badge" style="background:var(--nblog-l);color:var(--nblog-d)">진행중</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card"><div class="ct">계약 주요 조건</div>
+      <div class="contract-note">
+        <div>매월 1일 결제 | 업무 시작일: 계약 다음주 월요일</div>
+        <div>재계약: 기본 1개월 단위 | 최초 계약 3개월 (기업용)</div>
+        <div>혜인한복공방: 2026년 5월 시작, 3개월 계약 (7월 종료 후 일반 업체로 전환)</div>
+        <div>자료 미제공 시 최대 5일 이내 자동 소멸 가능</div>
+        <div>입금 계좌: 대구은행(IM뱅크) 504-10-619508-0 / 엘마켓21(김옥진)</div>
+        <div>해지 업체: 소공유통·화현·허준건강마트·매산팜스 — 재활성화 가능</div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /scroll-area -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- 트래커 바텀시트 -->
+<div class="modal-ov" id="modal-ov" onclick="closeModal()">
+  <div class="modal-box" id="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><h3 id="modal-title"></h3><div class="modal-sub" id="modal-sub"></div></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- 작업 추가 모달 -->
+<div class="log-modal-ov" id="log-modal">
+  <div class="log-modal-box">
+    <span class="mclose" onclick="closeLogModal()">×</span>
+    <h3>작업 기록 추가</h3>
+    <div class="fr"><label>날짜</label><input type="date" id="ldate"></div>
+    <div class="fr"><label>업체명</label>
+      <select id="lclient">
+        <optgroup label="P 박신영 담당">
+          <option>매산팜스굼벵이</option><option>문덕상가번영회</option><option>슬이네 제주해장국</option>
+          <option>JD해도점</option><option>미소힐링샵</option><option>혜인한복공방</option>
+          <option>허준건강마트(해지)</option><option>소공유통(해지)</option><option>화현(해지)</option>
+        </optgroup>
+        <optgroup label="H 황정임 담당">
+          <option>엘마켓21</option><option>해도떡방아(당근스토리)</option><option>큰동해시장</option>
+        </optgroup>
+        <optgroup label="B 배휘경 담당">
+          <option>해도떡방아</option><option>누리플라워</option><option>영생어르신돌봄센터</option><option>청주파티지니</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="fr"><label>플랫폼</label>
+      <select id="lplat"><option>카카오채널</option><option>당근마켓</option><option>당근스토리</option><option>네이버블로그</option><option>네이버플레이스</option><option>복합</option></select>
+    </div>
+    <div class="fr"><label>유형</label>
+      <select id="ltype"><option>소식</option><option>메시지</option><option>스토리</option><option>블로그포스팅</option><option>채널세팅</option><option>기타</option></select>
+    </div>
+    <div class="fr"><label>담당</label>
+      <select id="lmember"><option value="P">P 박신영</option><option value="H">H 황정임</option><option value="B">B 배휘경</option><option value="K">K 김옥진(대표)</option></select>
+    </div>
+    <div class="fr"><label>콘텐츠 제목/내용</label><textarea id="lcontent" placeholder="소식 제목이나 작업 내용을 입력하세요"></textarea></div>
+    <div class="fr">
+      <label>이미지 첨부 <span style="color:var(--text3);font-weight:400">(선택, 최대 5장)</span></label>
+      <div id="img-drop-area" onclick="document.getElementById('limages').click()" style="border:1.5px dashed var(--border2);border-radius:var(--rs);padding:14px;text-align:center;cursor:pointer;background:var(--bg3);margin-top:4px;transition:background 0.15s">
+        <div style="font-size:24px;margin-bottom:4px">📷</div>
+        <div style="font-size:12px;color:var(--text2)">탭하여 이미지 선택 또는 카메라 촬영</div>
+        <input type="file" id="limages" accept="image/*" multiple style="display:none" onchange="previewImages(this)">
+      </div>
+      <div id="img-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+    </div>
+    <div id="sheet-status" style="display:none;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px"></div>
+    <div class="ma">
+      <button class="btn-s" onclick="closeLogModal()">취소</button>
+      <button class="btn-p" id="save-btn" onclick="addLog()">저장 → 시트전송</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// 데이터 정의
+// ══════════════════════════════════════════════════
+
+// 업체 마스터 데이터 (엑셀 파일 기반)
+const CLIENTS = [
+  // ── P 박신영 담당 ──
+  {
+    id:'maesanfarms', name:'매산팜스굼벵이', member:'P', type:'실속형',
+    platforms:{kakao:true,dangn:false,nplace:false,nblog:false},
+    status:'해지', statusNote:'2026년 6월 해지',
+    contract:'2025.4월 시작 → 매달 갱신 → 2026년 6월 해지',
+    service:'소식 주1회, 메시지 월1회',
+    color:'#7C3AED', canReactivate:true,
+    history:[
+      {date:'2026.05', type:'소식', content:'블랙환·사육장소개·굼벵이가루·굼벵이환·무지톡톡·초콜릿'},
+      {date:'2026.04', type:'소식', content:'블랙환·사육장소개·굼벵이가루'},
+      {date:'2026.01', type:'소식', content:'새해인사·무지톡톡·주말세일거리'},
+      {date:'2025.10', type:'소식', content:'커피쿠폰당첨자·추석연휴·블랙환·구절초'},
+      {date:'2025.07', type:'소식', content:'신활력플러스사업·굼벵이 단백질·촬영·동의보감·굼벵이농장'},
+    ]
+  },
+  {
+    id:'munduk', name:'문덕 헬로부대특화거리 상가번영회', member:'P', type:'기본형',
+    platforms:{kakao:true,dangn:false,nplace:false,nblog:false},
+    status:'진행중', contract:'2025.10월 시작, 기본형',
+    service:'소식 주2회, 메시지 월2회',
+    color:'#92400e', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'소식', content:'현대골프스크린·명태본가·준양한정식·홍스포차·오천닭갈비·부산갈매기·수백당·카페율하온·큰막창·YB모터스·펀비어킹'},
+      {date:'2026.04', type:'소식', content:'현대골프스크린·명태본가·해병대창설77주년·홍스포차·오천닭갈비'},
+      {date:'2026.01', type:'소식', content:'새해인사·문덕헬로부대거리·부산갈매기·수백당·카페율하온·큰막창·YB모터스'},
+      {date:'2025.10', type:'소식', content:'포은축제행사·문덕헬로거리소개·수백당·부산갈매기·큰막창·카페율하온'},
+    ]
+  },
+  {
+    id:'slinae', name:'슬이네 제주해장국', member:'P', type:'실속형',
+    platforms:{kakao:true,dangn:true,nplace:false,nblog:false},
+    status:'진행중', contract:'2025.4월 시작',
+    service:'소식 주1회, 메시지 월1회',
+    color:'#185FA5', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'소식', content:'해장국메뉴·해장국영상·고유가피해지원금·스지수육·해장국메뉴'},
+      {date:'2026.01', type:'소식', content:'새해인사·해장국홍보·전골·선지해장국·배달반찬·소수육'},
+      {date:'2025.10', type:'소식', content:'수제맥주페스티벌·슬이네소개·풍성한한가위'},
+      {date:'2025.07', type:'소식', content:'포항식품발전협의회행사·슬이네해장국소개·슬러쉬오픈·모듬전골·반찬만드는법'},
+    ]
+  },
+  {
+    id:'jd', name:'JD해도점', member:'P', type:'실속형',
+    platforms:{kakao:true,dangn:false,nplace:false,nblog:false},
+    status:'진행중', contract:'2025.4월(재계약), 실속형',
+    service:'소식 주1회, 메시지 월1회',
+    color:'#be185d', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'소식', content:'4월인사·여름원피스·꽃놀이코디·고유가피해지원금·어린이날선물'},
+      {date:'2026.01', type:'소식', content:'새해인사·스카프매는법·겨울옷세일·겨울옷할인·온누리상품권·설선물'},
+      {date:'2025.10', type:'소식', content:'친구추가발표·추석영업안내·온누리상품권·가을잠옷·청도반시'},
+      {date:'2025.07', type:'소식', content:'여름원피스·방수앞치마·우양산·스카프·인견세트·모기장·민생회복·인견잠옷반바지'},
+    ]
+  },
+  {
+    id:'misoheal', name:'미소힐링샵', member:'P', type:'기본형',
+    platforms:{kakao:true,dangn:true,nplace:false,nblog:false},
+    status:'진행중', contract:'2026.1월 시작, 기본형',
+    service:'소식 주2회, 메시지 월2회',
+    color:'#7F77DD', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'소식', content:'붓기관리·5월이벤트·종아리관리·관리종류·라라톡스앰플'},
+      {date:'2026.04', type:'소식', content:'라라콜라겐·라쎄라후기·발관리·통증관리·종아리관리·고유가피해지원금'},
+      {date:'2026.01', type:'소식', content:'미소힐링소개·라쎄라윤곽관리·발케어·등라인·소닉케어·라라뉴로알파체험'},
+    ]
+  },
+  {
+    id:'hyein', name:'혜인한복공방', member:'P', type:'기본형',
+    platforms:{kakao:true,dangn:true,nplace:false,nblog:false},
+    status:'신규', contract:'2026년 5월 시작, 3개월 계약 (7월 종료 후 일반 전환)',
+    service:'소식 주2회, 메시지 월2회',
+    color:'#BA7517', isNew:true, newUntil:'2026-08',canReactivate:false,
+    history:[
+      {date:'2026.05', type:'소식', content:'세팅 시작 — 첫 소식 준비중'},
+    ]
+  },
+  {
+    id:'hunjun', name:'허준건강마트 포항큰동해시장', member:'P', type:'실속형',
+    platforms:{kakao:true,dangn:false,nplace:false,nblog:false},
+    status:'해지', statusNote:'계약해지',
+    contract:'2025.7월 시작 → 해지',
+    service:'소식 주1회, 메시지 월1회',
+    color:'#64748B', canReactivate:true,
+    history:[
+      {date:'2026.04', type:'소식', content:'대추차·쌍화차·오미자차·대추차선물세트·드라마촬영지·5월선물세트·고유가피해지원금'},
+      {date:'2026.01', type:'소식', content:'새해인사·주말세일거리·방송출현2·드라마안내'},
+      {date:'2025.10', type:'소식', content:'대추차만드는방법·추석영업안내·홍삼세트·여주정·우슬닭발환·레몬차'},
+      {date:'2025.07', type:'소식', content:'서비스 시작'},
+    ]
+  },
+  {
+    id:'sogong', name:'소공유통', member:'P', type:'실속형',
+    platforms:{kakao:true,dangn:true,nplace:false,nblog:false},
+    status:'해지', statusNote:'계약해지',
+    contract:'2026.1월 시작 → 해지',
+    service:'소식 주1회, 메시지 월1회',
+    color:'#0369a1', canReactivate:true,
+    history:[
+      {date:'2026.05', type:'소식', content:'소식(다수 발행)'},
+      {date:'2026.04', type:'소식', content:'소식(다수 발행)'},
+    ]
+  },
+  {
+    id:'hwahyun', name:'화현', member:'P', type:'실속형',
+    platforms:{kakao:true,dangn:true,nplace:false,nblog:false},
+    status:'해지', statusNote:'계약해지',
+    contract:'2026.1월 시작 → 해지',
+    service:'소식 주1~2회, 광고 진행',
+    color:'#0f766e', canReactivate:true,
+    history:[
+      {date:'2026.04', type:'소식', content:'헤드스파·리젠트컷·단발태슬컷·그레이스펌·빌드펌·샵인샵네일'},
+      {date:'2026.01', type:'소식', content:'화현소개·봄맞이·휴무안내·염색데이/셋팅데이·애쉬브라운'},
+    ]
+  },
+  // ── H 황정임 담당 ──
+  {
+    id:'elmarket', name:'엘마켓21', member:'H', type:'고급형',
+    platforms:{kakao:true,dangn:true,nplace:false,nblog:false},
+    status:'진행중', contract:'2025.1월 시작, 매달 갱신, 고급형',
+    service:'카카오소식 주3-5회, 당근소식·스토리, 메시지 월3-5회',
+    color:'#1D9E75', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'소식', content:'엘마켓21 콘텐츠 발행 진행중'},
+      {date:'2026.01', type:'소식', content:'새해인사 외 다수'},
+      {date:'2025.10', type:'소식', content:'찬이네ABC주스·능이해신탕방송·과메기·톡딜이벤트·오남매쭈꾸미·오미자김·EZ라이브·귀리국수·문덕헬로부대·불땡초맛김·돼지감자환'},
+      {date:'2025.07', type:'소식', content:'송도비치레트로페스티벌·김부각톡딜·해신탕라이브·광복절연휴라이브'},
+    ]
+  },
+  {
+    id:'haedotteok_story', name:'해도떡방아 (당근스토리)', member:'H', type:'기본형',
+    platforms:{kakao:false,dangn:true,nplace:false,nblog:false},
+    status:'진행중', contract:'2025.8월부터 당근 스토리글 담당',
+    service:'당근 스토리글 발행 (B담당 카카오와 분리)',
+    color:'#639922', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'당근스토리', content:'쑥떡·주말세일·인절미 외 다수 당근 스토리'},
+      {date:'2026.01', type:'당근스토리', content:'내가족과먹는떡·당일생산·떡국떡 외 다수'},
+      {date:'2025.10', type:'당근스토리', content:'녹두송편·추석연휴·색깔송편 외 다수'},
+    ]
+  },
+  {
+    id:'kundonghai', name:'큰동해시장', member:'H', type:'무료',
+    platforms:{kakao:true,dangn:false,nplace:false,nblog:false},
+    status:'무료진행', contract:'무료 진행',
+    service:'카카오채널 소식 (시장 내 상점 소개)',
+    color:'#888780', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'소식', content:'시장홍보·시장영상'},
+      {date:'2026.04', type:'소식', content:'시장영상'},
+      {date:'2026.01', type:'소식', content:'새해인사·온누리상품권·시가랩·이상휘국회의원온누리행사'},
+      {date:'2025.10', type:'소식', content:'온누리환급행사·K전통시장박람회·경북전통시장박람회수상'},
+      {date:'2025.07', type:'소식', content:'태광상회·청송농산·최영미반찬·세일거리 등 시장상점 소개'},
+    ]
+  },
+  // ── B 배휘경 담당 ──
+  {
+    id:'haedotteok', name:'해도떡방아', member:'B', type:'기본형',
+    platforms:{kakao:true,dangn:true,nplace:false,nblog:false},
+    status:'진행중', contract:'2025.1월 시작, 매달 갱신, 기본형',
+    service:'카카오소식 주2회, 메시지 월3-5회, 당근소식 동일',
+    color:'#639922', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'소식', content:'쑥떡·주말세일·인절미·쌀들어오는날·재료부터다른쑥떡·세일데이·달지않아인기있는떡·시루떡·어버이날·꿀설기'},
+      {date:'2026.01', type:'소식', content:'내가족과먹는떡·3색떡국떡·당일생산·떡국떡·주문제작·현미떡국떡·도토리떡국떡·차례떡·설날휴무안내'},
+      {date:'2025.10', type:'소식', content:'녹두송편·색깔송편·모시송편·주문감사·매일매일건강한떡·새단장·박람회소식·설기떡시리즈'},
+      {date:'2025.07', type:'소식', content:'맛있는떡이기다립니다·도토리인절미·이바지떡·방울증편·민생회복쿠폰·설기시리즈'},
+    ]
+  },
+  {
+    id:'nuriflower', name:'누리플라워', member:'B', type:'고급형',
+    platforms:{kakao:true,dangn:true,nplace:false,nblog:true},
+    status:'진행중', contract:'2025.2.24 시작, 매달 갱신, 고급형',
+    service:'카카오소식 주3-5회, 당근소식 동일, 블로그, 메시지 월3-5회',
+    color:'#D4537E', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'소식', content:'카네이션꽃바구니·여자친구선물·개업화환·웨딩꽃장식·어버이날용돈박스·스승의날선물·가정의달꽃·부부의날꽃바구니'},
+      {date:'2026.01', type:'소식', content:'새해인테리어·포항졸업꽃다발·졸업식미니꽃다발·설선물추천·발렌타인데이·꽃관리팁'},
+      {date:'2025.10', type:'소식', content:'프리저브드·가을시즌꽃다발·해바라기꽃다발·인형꽃다발·43송이레드장미·빼빼로데이'},
+      {date:'2025.07', type:'소식', content:'단체꽃다발·프로포즈꽃다발·키티인형꽃다발·출산축하꽃바구니·포스코전시회·원데이수업'},
+    ]
+  },
+  {
+    id:'youngsaeng', name:'영생어르신돌봄센터', member:'B', type:'블로그',
+    platforms:{kakao:false,dangn:false,nplace:false,nblog:true},
+    status:'진행중', contract:'블로그 월10회',
+    service:'네이버블로그 포스팅 월10회',
+    color:'#0369a1', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'블로그', content:'셔플보드·단추실꿰기·노인신체활동·색칠놀이'},
+      {date:'2026.01', type:'블로그', content:'어르신놀이·어르신식사·어르신물리치료·시니어스포츠·인지활동프로그램·어르신신체활동·치매예방게임·어르신근력운동·시니어미술·한삼을이용한노인운동·미니축구·한복만들기'},
+    ]
+  },
+  {
+    id:'partyzini', name:'청주 파티지니', member:'B', type:'실속형',
+    platforms:{kakao:true,dangn:false,nplace:false,nblog:false},
+    status:'진행중', contract:'카카오 소식 주2회',
+    service:'카카오소식 주2회',
+    color:'#0891B2', canReactivate:false,
+    history:[
+      {date:'2026.05', type:'소식', content:'회사창립기념일·하객도시락·홈파티케이터링박스·청주브런치·생일도시락·청주기업세미나박스케이터링·소규모돌잔치·세미나도시락'},
+      {date:'2026.04', type:'소식', content:'다양한 케이터링 소식'},
+    ]
+  },
+];
+
+// ── 6월 콘텐츠 계획 ──
+const PLAN = {
+  '2026-06-01':[
+    {client:'엘마켓21',plat:'kakao',kw:'#6월라이브예고',member:'H'},
+    {client:'엘마켓21',plat:'dangn',kw:'#전통시장소식',member:'H'},
+    {client:'해도떡방아',plat:'kakao',kw:'#당일생산떡',member:'B'},
+    {client:'해도떡방아',plat:'dangn',kw:'#당일생산떡',member:'B'},
+    {client:'누리플라워',plat:'kakao',kw:'#6월꽃다발',member:'B'},
+    {client:'JD해도점',plat:'kakao',kw:'#6월신상·여름원피스',member:'P'},
+  ],
+  '2026-06-03':[
+    {client:'엘마켓21',plat:'kakao',kw:'#지방선거·이벤트',member:'H'},
+    {client:'슬이네 제주해장국',plat:'kakao',kw:'#해장국맛집',member:'P'},
+    {client:'슬이네 제주해장국',plat:'dangn',kw:'#해장국맛집',member:'P'},
+    {client:'미소힐링샵',plat:'kakao',kw:'#6월이벤트',member:'P'},
+    {client:'문덕 헬로부대특화거리 상가번영회',plat:'kakao',kw:'#문덕헬로거리',member:'P'},
+  ],
+  '2026-06-05':[
+    {client:'엘마켓21',plat:'kakao',kw:'#환경의날·자연먹거리',member:'H'},
+    {client:'누리플라워',plat:'kakao',kw:'#친환경꽃',member:'B'},
+    {client:'누리플라워',plat:'dangn',kw:'#친환경꽃',member:'B'},
+    {client:'미소힐링샵',plat:'kakao',kw:'#자연주의케어',member:'P'},
+    {client:'JD해도점',plat:'kakao',kw:'#여름린넨패션',member:'P'},
+  ],
+  '2026-06-06':[
+    {client:'엘마켓21',plat:'kakao',kw:'#현충일휴무',member:'H'},
+    {client:'해도떡방아',plat:'kakao',kw:'#현충일휴무',member:'B'},
+    {client:'해도떡방아',plat:'dangn',kw:'#현충일휴무',member:'B'},
+    {client:'누리플라워',plat:'kakao',kw:'#휴무안내',member:'B'},
+    {client:'큰동해시장',plat:'kakao',kw:'#휴무안내',member:'H'},
+    {client:'JD해도점',plat:'kakao',kw:'#휴무안내',member:'P'},
+    {client:'문덕 헬로부대특화거리 상가번영회',plat:'kakao',kw:'#현충일휴무',member:'P'},
+  ],
+  '2026-06-08':[
+    {client:'엘마켓21',plat:'kakao',kw:'#김부각재입고',member:'H'},
+    {client:'엘마켓21',plat:'dangn',kw:'#해신탕소식',member:'H'},
+    {client:'해도떡방아',plat:'kakao',kw:'#쑥떡·보리떡',member:'B'},
+    {client:'혜인한복공방',plat:'kakao',kw:'#여름한복',member:'P'},
+    {client:'혜인한복공방',plat:'dangn',kw:'#여름한복',member:'P'},
+    {client:'JD해도점',plat:'kakao',kw:'#여름잠옷·인견세트',member:'P'},
+  ],
+  '2026-06-10':[
+    {client:'엘마켓21',plat:'kakao',kw:'#전통시장라이브',member:'H'},
+    {client:'큰동해시장',plat:'kakao',kw:'#세일거리',member:'H'},
+    {client:'슬이네 제주해장국',plat:'kakao',kw:'#스지해장국',member:'P'},
+    {client:'슬이네 제주해장국',plat:'dangn',kw:'#스지해장국',member:'P'},
+    {client:'문덕 헬로부대특화거리 상가번영회',plat:'kakao',kw:'#문덕맛집소개',member:'P'},
+  ],
+  '2026-06-11':[
+    {client:'엘마켓21',plat:'kakao',kw:'#월드컵개막이벤트',member:'H'},
+    {client:'슬이네 제주해장국',plat:'kakao',kw:'#월드컵응원해장국',member:'P'},
+    {client:'청주 파티지니',plat:'kakao',kw:'#월드컵응원케이터링',member:'B'},
+  ],
+  '2026-06-12':[
+    {client:'누리플라워',plat:'kakao',kw:'#수국·여름꽃다발',member:'B'},
+    {client:'누리플라워',plat:'dangn',kw:'#수국',member:'B'},
+    {client:'미소힐링샵',plat:'kakao',kw:'#두피케어',member:'P'},
+    {client:'JD해도점',plat:'kakao',kw:'#방수앞치마',member:'P'},
+  ],
+  '2026-06-15':[
+    {client:'엘마켓21',plat:'kakao',kw:'#오남매쭈꾸미',member:'H'},
+    {client:'해도떡방아',plat:'kakao',kw:'#도토리인절미',member:'B'},
+    {client:'해도떡방아',plat:'dangn',kw:'#도토리인절미',member:'B'},
+    {client:'혜인한복공방',plat:'kakao',kw:'#한복대여',member:'P'},
+    {client:'슬이네 제주해장국',plat:'kakao',kw:'#기말고사시즌해장국',member:'P'},
+    {client:'JD해도점',plat:'kakao',kw:'#우양산',member:'P'},
+    {client:'문덕 헬로부대특화거리 상가번영회',plat:'kakao',kw:'#친구추가이벤트',member:'P'},
+    {client:'영생어르신돌봄센터',plat:'nblog',kw:'#6월블로그포스팅1',member:'B'},
+  ],
+  '2026-06-17':[
+    {client:'엘마켓21',plat:'kakao',kw:'#톡딜이벤트예고',member:'H'},
+    {client:'누리플라워',plat:'kakao',kw:'#웨딩꽃다발',member:'B'},
+    {client:'큰동해시장',plat:'kakao',kw:'#여름제철',member:'H'},
+    {client:'JD해도점',plat:'kakao',kw:'#스카프·여름소품',member:'P'},
+    {client:'영생어르신돌봄센터',plat:'nblog',kw:'#6월블로그포스팅2',member:'B'},
+  ],
+  '2026-06-19':[
+    {client:'엘마켓21',plat:'kakao',kw:'#단오·해신탕선물',member:'H'},
+    {client:'혜인한복공방',plat:'kakao',kw:'#단오·한복',member:'P'},
+    {client:'혜인한복공방',plat:'dangn',kw:'#단오한복',member:'P'},
+    {client:'해도떡방아',plat:'kakao',kw:'#단오·수리취떡',member:'B'},
+    {client:'해도떡방아',plat:'dangn',kw:'#단오떡',member:'B'},
+    {client:'슬이네 제주해장국',plat:'kakao',kw:'#가족외식',member:'P'},
+    {client:'JD해도점',plat:'kakao',kw:'#남성잠옷세트',member:'P'},
+    {client:'문덕 헬로부대특화거리 상가번영회',plat:'kakao',kw:'#단오이벤트',member:'P'},
+    {client:'누리플라워',plat:'nblog',kw:'#6월블로그',member:'B'},
+    {client:'영생어르신돌봄센터',plat:'nblog',kw:'#6월블로그포스팅3',member:'B'},
+  ],
+  '2026-06-21':[
+    {client:'엘마켓21',plat:'kakao',kw:'#하지·능이해신탕',member:'H'},
+    {client:'슬이네 제주해장국',plat:'kakao',kw:'#하지·여름보양식',member:'P'},
+    {client:'미소힐링샵',plat:'kakao',kw:'#여름피부관리',member:'P'},
+    {client:'누리플라워',plat:'kakao',kw:'#해바라기',member:'B'},
+    {client:'JD해도점',plat:'kakao',kw:'#여름인견원피스',member:'P'},
+  ],
+  '2026-06-22':[
+    {client:'엘마켓21',plat:'kakao',kw:'#오미자김·불땡초맛김',member:'H'},
+    {client:'해도떡방아',plat:'kakao',kw:'#여름떡',member:'B'},
+    {client:'해도떡방아',plat:'dangn',kw:'#여름떡',member:'B'},
+    {client:'혜인한복공방',plat:'kakao',kw:'#여름한복코디',member:'P'},
+    {client:'JD해도점',plat:'kakao',kw:'#인견나시바지',member:'P'},
+    {client:'문덕 헬로부대특화거리 상가번영회',plat:'kakao',kw:'#수백당소개',member:'P'},
+    {client:'영생어르신돌봄센터',plat:'nblog',kw:'#6월블로그포스팅4',member:'B'},
+  ],
+  '2026-06-24':[
+    {client:'엘마켓21',plat:'kakao',kw:'#과메기시즌예고',member:'H'},
+    {client:'큰동해시장',plat:'kakao',kw:'#여름수산물',member:'H'},
+    {client:'미소힐링샵',plat:'kakao',kw:'#6월마무리케어',member:'P'},
+    {client:'문덕 헬로부대특화거리 상가번영회',plat:'kakao',kw:'#부산갈매기소개',member:'P'},
+    {client:'영생어르신돌봄센터',plat:'nblog',kw:'#6월블로그포스팅5',member:'B'},
+  ],
+  '2026-06-26':[
+    {client:'엘마켓21',plat:'kakao',kw:'#EZ라이브',member:'H'},
+    {client:'엘마켓21',plat:'dangn',kw:'#라이브커머스',member:'H'},
+    {client:'누리플라워',plat:'kakao',kw:'#원데이클래스',member:'B'},
+    {client:'슬이네 제주해장국',plat:'kakao',kw:'#모듬전골',member:'P'},
+    {client:'JD해도점',plat:'kakao',kw:'#모기장',member:'P'},
+    {client:'영생어르신돌봄센터',plat:'nblog',kw:'#6월블로그포스팅6',member:'B'},
+  ],
+  '2026-06-29':[
+    {client:'엘마켓21',plat:'kakao',kw:'#7월라이브예고',member:'H'},
+    {client:'해도떡방아',plat:'kakao',kw:'#월말주문마감',member:'B'},
+    {client:'해도떡방아',plat:'dangn',kw:'#택배마감',member:'B'},
+    {client:'혜인한복공방',plat:'kakao',kw:'#7월한복예약',member:'P'},
+    {client:'큰동해시장',plat:'kakao',kw:'#온누리상품권',member:'H'},
+    {client:'JD해도점',plat:'kakao',kw:'#인견잠옷반바지',member:'P'},
+    {client:'문덕 헬로부대특화거리 상가번영회',plat:'kakao',kw:'#큰막창소개',member:'P'},
+    {client:'영생어르신돌봄센터',plat:'nblog',kw:'#6월블로그포스팅7',member:'B'},
+  ],
+  '2026-06-30':[
+    {client:'엘마켓21',plat:'kakao',kw:'#6월결산·7월예고',member:'H'},
+    {client:'누리플라워',plat:'kakao',kw:'#6월마지막꽃',member:'B'},
+    {client:'누리플라워',plat:'dangn',kw:'#여름꽃선물',member:'B'},
+    {client:'미소힐링샵',plat:'kakao',kw:'#7월예약오픈',member:'P'},
+    {client:'JD해도점',plat:'kakao',kw:'#6월세일마감',member:'P'},
+    {client:'문덕 헬로부대특화거리 상가번영회',plat:'kakao',kw:'#카페율하온소개',member:'P'},
+    {client:'누리플라워',plat:'nblog',kw:'#6월블로그마무리',member:'B'},
+    {client:'영생어르신돌봄센터',plat:'nblog',kw:'#6월블로그포스팅8',member:'B'},
+  ],
+};
+
+const HOLIDAYS={
+  '2026-06-03':['기념일','2026 지방선거'],
+  '2026-06-05':['기념일','환경의 날'],
+  '2026-06-06':['공휴일','현충일'],
+  '2026-06-11':['이벤트','북중미 월드컵 개막'],
+  '2026-06-19':['절기','단오'],
+};
+const EXAM_RANGE=['2026-06-15','2026-06-16','2026-06-17','2026-06-18','2026-06-19','2026-06-20','2026-06-21','2026-06-22','2026-06-23','2026-06-24','2026-06-25','2026-06-26'];
+const MONTHS=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const MEMBER_COLOR={P:'#185FA5',H:'#9333EA',B:'#EA580C',K:'#DC2626'};
+const PLAT_CLS={kakao:'cki-k',dangn:'cki-d',nplace:'cki-np',nblog:'cki-nb'};
+const PLAT_SEG={kakao:'k-on',dangn:'d-on',nplace:'np-on',nblog:'nb-on'};
+const PLAT_LABEL={kakao:'📣카카오',dangn:'🥕당근',nplace:'🗺️플레이스',nblog:'📝블로그'};
+
+// ── 체크 상태 ──
+const checkCache={};
+function mkKey(d,c,p){return`elm21|${d}|${c}|${p}`;}
+function isChecked(d,c,p){const k=mkKey(d,c,p);if(k in checkCache)return checkCache[k];try{const v=localStorage.getItem(k)==='1';checkCache[k]=v;return v;}catch(e){return false;}}
+function toggleCheck(d,c,p){const k=mkKey(d,c,p);const next=!isChecked(d,c,p);checkCache[k]=next;try{next?localStorage.setItem(k,'1'):localStorage.removeItem(k);}catch(e){}renderAll();if(curModalKey)openModal(curModalKey,curModalLabel);}
+
+// ── 통계 계산 ──
+function calcStats(){
+  let kT=0,kD=0,dT=0,dD=0,npT=0,npD=0,nbT=0,nbD=0;
+  const byClient={};
+  CLIENTS.forEach(c=>{byClient[c.name]={kT:0,kD:0,dT:0,dD:0,npT:0,npD:0,nbT:0,nbD:0};});
+  Object.entries(PLAN).forEach(([date,items])=>{
+    items.forEach(it=>{
+      if(!byClient[it.client])return;
+      const done=isChecked(date,it.client,it.plat);
+      if(it.plat==='kakao'){kT++;byClient[it.client].kT++;if(done){kD++;byClient[it.client].kD++;}}
+      else if(it.plat==='dangn'){dT++;byClient[it.client].dT++;if(done){dD++;byClient[it.client].dD++;}}
+      else if(it.plat==='nplace'){npT++;byClient[it.client].npT++;if(done){npD++;byClient[it.client].npD++;}}
+      else if(it.plat==='nblog'){nbT++;byClient[it.client].nbT++;if(done){nbD++;byClient[it.client].nbD++;}}
+    });
+  });
+  return{kT,kD,dT,dD,npT,npD,nbT,nbD,byClient};
+}
+
+// ── 대시보드 ──
+function renderDash(){
+  const{kT,kD,dT,dD,nbT,nbD}=calcStats();
+  const active=CLIENTS.filter(c=>c.status!=='해지'&&c.status!=='무료진행').length;
+  const terminated=CLIENTS.filter(c=>c.status==='해지').length;
+  const tot=kT+dT+nbT,done=kD+dD+nbD;
+  const pct=tot?Math.round(done/tot*100):0;
+  document.getElementById('dash-active').textContent=active;
+  document.getElementById('dash-terminated').textContent=terminated;
+  document.getElementById('dash-done').textContent=done;
+  document.getElementById('dash-pct').textContent=pct+'%';
+  const kP=kT?Math.round(kD/kT*100):0;
+  const dP=dT?Math.round(dD/dT*100):0;
+  const nbP=nbT?Math.round(nbD/nbT*100):0;
+  document.getElementById('dk-txt').textContent=`${kD}/${kT}건`;
+  document.getElementById('dk-bar').style.width=kP+'%';
+  document.getElementById('dd-txt').textContent=`${dD}/${dT}건`;
+  document.getElementById('dd-bar').style.width=dP+'%';
+  document.getElementById('dnb-txt').textContent=`${nbD}/${nbT}건`;
+  document.getElementById('dnb-bar').style.width=nbP+'%';
+
+  // 담당자별
+  const mstats={P:{clients:0,k:0,d:0,nb:0},H:{clients:0,k:0,d:0,nb:0},B:{clients:0,k:0,d:0,nb:0}};
+  CLIENTS.filter(c=>c.status!=='해지').forEach(c=>{if(mstats[c.member])mstats[c.member].clients++;});
+  document.getElementById('member-stats').innerHTML=
+    Object.entries(mstats).map(([m,s])=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
+      <span class="mbadge mb-${m}" style="min-width:60px;text-align:center">${m} ${m==='P'?'박신영':m==='H'?'황정임':'배휘경'}</span>
+      <div style="flex:1;font-size:12px;color:var(--text2)">담당 <strong style="color:var(--text)">${s.clients}</strong>개 업체</div>
+    </div>`).join('');
+
+  // 최근 이력
+  document.getElementById('recent-history').innerHTML=[
+    {cls:'nw',date:'2026.05.29',text:'혜인한복공방 — 신규 계약 (기본형, 3개월, 5월시작)'},
+    {cls:'cl',date:'2026.06',text:'매산팜스굼벵이 — 계약해지 (재활성화 가능)'},
+    {cls:'cl',date:'2026.05',text:'소공유통·화현·허준건강마트 — 계약해지 (재활성화 가능)'},
+    {cls:'ch',date:'2026.01',text:'미소힐링샵 — 신규 계약 시작 (기본형)'},
+    {cls:'dn',date:'2025.10',text:'누리플라워 — 당근마켓 소식·블로그 동시 시작'},
+  ].map(e=>`<div style="border-left:3px solid ${e.cls==='nw'?'var(--teal)':e.cls==='cl'?'var(--red)':e.cls==='ch'?'var(--purple)':'var(--green)'};padding:8px 12px;margin-bottom:8px;border-radius:0 var(--rs) var(--rs) 0;background:var(--bg3)">
+    <div style="font-size:10px;color:var(--text3)">${e.date}</div>
+    <div style="font-size:13px;font-weight:500;margin-top:1px">${e.text}</div>
+  </div>`).join('');
+}
+
+// ── 트래커 보스 ──
+function renderBoss(){
+  const{kT,kD,dT,dD,nbT,nbD,byClient}=calcStats();
+  const p=(d,t)=>t?Math.round(d/t*100):0;
+  document.getElementById('k-done').textContent=kD;document.getElementById('k-total').textContent=kT;
+  document.getElementById('k-pct').textContent=p(kD,kT)+'%';document.getElementById('k-bar').style.width=p(kD,kT)+'%';
+  document.getElementById('k-rem').textContent=(kT-kD)+'건 남음';
+  document.getElementById('d-done').textContent=dD;document.getElementById('d-total').textContent=dT;
+  document.getElementById('d-pct').textContent=p(dD,dT)+'%';document.getElementById('d-bar').style.width=p(dD,dT)+'%';
+  document.getElementById('d-rem').textContent=(dT-dD)+'건 남음';
+  document.getElementById('nb-done').textContent=nbD;document.getElementById('nb-total').textContent=nbT;
+  document.getElementById('nb-pct').textContent=p(nbD,nbT)+'%';document.getElementById('nb-bar').style.width=p(nbD,nbT)+'%';
+  document.getElementById('nb-rem').textContent=(nbT-nbD)+'건 남음';
+
+  const mini=(d,t,color)=>t?`<div style="display:flex;align-items:center;gap:4px"><div class="mini-bar"><div class="mini-fill" style="width:${p(d,t)}%;background:${color}"></div></div><span style="font-size:10px">${d}/${t}</span></div>`:'<span style="color:var(--text3);font-size:11px">—</span>';
+  document.getElementById('boss-tbody').innerHTML=CLIENTS.filter(c=>c.status!=='해지').map(c=>{
+    const s=byClient[c.name]||{kT:0,kD:0,dT:0,dD:0,nbT:0,nbD:0};
+    const tot=s.kT+s.dT+s.nbT,done=s.kD+s.dD+s.nbD;
+    const pct=tot?Math.round(done/tot*100):0;
+    const bc=pct===100?'#1D9E75':pct>50?'#FBBF24':'#E24B4A';
+    return`<tr>
+      <td><span style="width:7px;height:7px;border-radius:50%;background:${c.color};display:inline-block;margin-right:5px"></span><strong style="font-size:12px">${c.name}</strong></td>
+      <td><div class="mdot-wrap" style="background:${MEMBER_COLOR[c.member]}">${c.member}</div></td>
+      <td>${mini(s.kD,s.kT,'var(--kakao)')}</td>
+      <td>${mini(s.dD,s.dT,'var(--dangn)')}</td>
+      <td>${mini(s.nbD,s.nbT,'var(--nblog)')}</td>
+      <td><span style="font-size:13px;font-weight:700;color:${bc}">${pct}%</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── 트래커 캘린더 ──
+let calY=2026,calM=5,platF='all',curModalKey='',curModalLabel='';
+function renderCal(){
+  document.getElementById('cal-label').textContent=`${calY}년 ${MONTHS[calM]}`;
+  const body=document.getElementById('cal-body');body.innerHTML='';
+  const first=new Date(calY,calM,1).getDay(),last=new Date(calY,calM+1,0).getDate();
+  const mf=document.getElementById('msel').value;
+  for(let i=0;i<first;i++)body.innerHTML+=`<div class="cday other"><div class="day-num">${new Date(calY,calM,0).getDate()-first+i+1}</div></div>`;
+  for(let d=1;d<=last;d++){
+    const key=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(calY,calM,d).getDay();
+    const hol=HOLIDAYS[key];const isExam=EXAM_RANGE.includes(key);
+    const isToday=(calY===2026&&calM===4&&d===29);
+    const items=(PLAN[key]||[]).filter(it=>{
+      if(mf!=='all'&&it.member!==mf)return false;
+      if(platF!=='all'&&it.plat!==platF)return false;
+      return true;
+    });
+    let inner=`<div class="day-num" style="${dow===0?'color:var(--red)':''}">${d}${hol?`<span class="hn">${hol[1].substring(0,4)}</span>`:''}</div>`;
+    if(hol)inner+=`<span class="holi-badge hb-${hol[0]==='공휴일'?'red':hol[0]==='절기'?'brown':'blue'}" style="display:block;margin-bottom:2px">${hol[1]}</span>`;
+    if(isExam&&!hol)inner+=`<span class="holi-badge hb-brown" style="display:block;margin-bottom:2px">기말고사</span>`;
+    items.slice(0,2).forEach(it=>{
+      const done=isChecked(key,it.client,it.plat);
+      const cl=CLIENTS.find(c=>c.name===it.client);
+      inner+=`<div class="cki ${PLAT_CLS[it.plat]||''}${done?' done':''}">
+        <input type="checkbox" ${done?'checked':''} onclick="event.stopPropagation();toggleCheck('${key}','${it.client}','${it.plat}')">
+        <span class="cki-text" style="color:${cl?cl.color:'#333'}">${it.client.substring(0,4)}: ${it.kw}</span>
+      </div>`;
+    });
+    if(items.length>2)inner+=`<div style="font-size:8px;color:var(--text3);padding:1px 3px">+${items.length-2}개</div>`;
+    if(items.length>0){
+      inner+=`<div class="dp-bar">`;
+      items.forEach(it=>{inner+=`<div class="dp-s${isChecked(key,it.client,it.plat)?' '+(PLAT_SEG[it.plat]||''):''}"></div>`;});
+      inner+=`</div>`;
+    }
+    body.innerHTML+=`<div class="cday${isToday?' today':''}${hol&&hol[0]==='공휴일'?' holi':''}" onclick="openModal('${key}','${d}일 (${['일','월','화','수','목','금','토'][dow]})')">${inner}</div>`;
+  }
+  const rem=(first+last)%7===0?0:7-(first+last)%7;
+  for(let i=1;i<=rem;i++)body.innerHTML+=`<div class="cday other"><div class="day-num">${i}</div></div>`;
+}
+function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}renderCal();}
+
+// ── 트래커 모달 ──
+function openModal(key,label){
+  curModalKey=key;curModalLabel=label;
+  const mf=document.getElementById('msel').value;
+  document.getElementById('modal-title').textContent=`${calY}년 ${MONTHS[calM]} ${label}`;
+  const items=(PLAN[key]||[]).filter(it=>mf==='all'||it.member===mf);
+  const hol=HOLIDAYS[key];const isExam=EXAM_RANGE.includes(key);
+  const counts={kakao:[0,0],dangn:[0,0],nblog:[0,0]};
+  items.forEach(it=>{if(counts[it.plat]){counts[it.plat][1]++;if(isChecked(key,it.client,it.plat))counts[it.plat][0]++;}});
+  const subEl=document.getElementById('modal-sub');
+  subEl.innerHTML='';
+  if(hol)subEl.innerHTML+=`<span class="holi-badge hb-${hol[0]==='공휴일'?'red':hol[0]==='절기'?'brown':'blue'}">${hol[1]}</span>`;
+  if(isExam)subEl.innerHTML+=`<span class="holi-badge hb-brown">기말고사 시즌</span>`;
+  ['kakao','dangn','nblog'].forEach(p=>{if(counts[p][1])subEl.innerHTML+=`<span>${PLAT_LABEL[p]} ${counts[p][0]}/${counts[p][1]}</span>`;});
+  let html='';
+  if(!items.length){html=`<div style="padding:20px 0;text-align:center;font-size:13px;color:var(--text3)">예정된 콘텐츠 없음</div>`;}
+  else{
+    ['kakao','dangn','nplace','nblog'].forEach(plat=>{
+      const pi=items.filter(i=>i.plat===plat);if(!pi.length)return;
+      html+=`<div class="modal-sec">${PLAT_LABEL[plat]}</div>`;
+      pi.forEach(it=>{
+        const done=isChecked(key,it.client,it.plat);
+        const cl=CLIENTS.find(c=>c.name===it.client);
+        html+=`<div class="modal-item${done?' done':''}">
+          <input type="checkbox" style="accent-color:${plat==='kakao'?'var(--kakao)':plat==='dangn'?'var(--dangn)':'var(--nblog)'}" ${done?'checked':''} onchange="toggleCheck('${key}','${it.client}','${it.plat}')">
+          <div class="modal-item-info">
+            <div class="modal-item-client" style="color:${cl?cl.color:'#333'}">${it.client}</div>
+            <div class="modal-item-kw">${it.kw}</div>
+          </div>
+          <div class="mdot-wrap" style="background:${MEMBER_COLOR[it.member]||'#888'};width:18px;height:18px;font-size:9px">${it.member}</div>
+        </div>`;
+      });
+    });
+  }
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal-ov').classList.add('open');
+  setTimeout(()=>document.getElementById('modal-box').classList.add('open'),10);
+}
+function closeModal(){document.getElementById('modal-box').classList.remove('open');setTimeout(()=>{document.getElementById('modal-ov').classList.remove('open');curModalKey='';curModalLabel='';},300);}
+
+function fPlat(p,btn){platF=p;document.querySelectorAll('#tview-worker .fbtn').forEach(b=>b.classList.remove('fa'));btn.classList.add('fa');renderCal();}
+
+// ── 업체 목록 ──
+let ctf='전체';
+const STATUS_BADGE={진행중:'bg-g',신규:'bg-t',재계약중:'bg-b',무료진행:'bg-gr',해지:'bg-r'};
+const TYPE_BADGE={고급형:'bg-p',기본형:'bg-a',실속형:'bg-gr',무료:'bg-gr',기업기본:'bg-t',블로그:'bg-gr',실속형:'bg-gr'};
+function rClients(list){
+  document.getElementById('ctbody').innerHTML=list.map(c=>{
+    const isT=c.status==='해지';
+    return`<tr style="${isT?'opacity:0.5':''}">
+      <td style="font-weight:700;font-size:12px">${c.name}${c.isNew?` <span class="badge" style="background:var(--teal-l);color:var(--teal);font-size:10px">신규</span>`:''}${isT?` <span class="badge bg-r" style="font-size:10px">해지</span>`:''}${c.canReactivate?` <span class="badge bg-gr" style="font-size:10px">재활성화가능</span>`:''}</td>
+      <td>
+        ${c.platforms.kakao?'<span class="pt pt-k">카카오</span>':''}
+        ${c.platforms.dangn?'<span class="pt pt-d">당근</span>':''}
+        ${c.platforms.nplace?'<span class="pt pt-np">플레이스</span>':''}
+        ${c.platforms.nblog?'<span class="pt pt-nb">블로그</span>':''}
+      </td>
+      <td><span class="badge ${TYPE_BADGE[c.type]||'bg-gr'}">${c.type}</span></td>
+      <td><div class="mdot-wrap" style="background:${MEMBER_COLOR[c.member]}">${c.member}</div></td>
+      <td><span class="badge ${STATUS_BADGE[c.status]||'bg-gr'}">${c.status}</span></td>
+      <td style="font-size:11px;color:var(--text2)">${c.service}</td>
+    </tr>`;
+  }).join('');
+}
+function fClients(v){
+  let l=CLIENTS;
+  if(ctf==='P'||ctf==='H'||ctf==='B'||ctf==='K') l=l.filter(c=>c.member===ctf);
+  else if(ctf==='해지') l=l.filter(c=>c.status==='해지');
+  if(v) l=l.filter(c=>c.name.includes(v));
+  rClients(l);
+}
+function fType(t,btn){ctf=t;document.querySelectorAll('#page-clients .fbtn').forEach(b=>b.classList.remove('fa','fP','fH','fB'));btn.classList.add(t==='P'?'fP':t==='H'?'fH':t==='B'?'fB':'fa');fClients(document.getElementById('csearch')?.value||'');}
+rClients(CLIENTS);
+
+// ── 업체별 다이어리 ──
+let diaryFilter='전체';
+let diaryLogs=[
+  {date:'2026.05.29',client:'혜인한복공방',plat:'카카오채널',type:'세팅',member:'P',content:'신규 계약 (3개월) — 채널 세팅 시작'},
+  {date:'2026.05.29',client:'매산팜스굼벵이',plat:'카카오채널',type:'변경',member:'P',content:'6월 계약 해지 처리'},
+  {date:'2026.05',client:'미소힐링샵',plat:'카카오채널',type:'소식',member:'P',content:'붓기관리·5월이벤트·종아리관리·라라톡스앰플 발행'},
+  {date:'2026.05',client:'해도떡방아',plat:'카카오채널+당근',type:'소식',member:'B',content:'쑥떡·주말세일·인절미·시루떡·어버이날·꿀설기'},
+  {date:'2026.05',client:'누리플라워',plat:'카카오채널+당근+블로그',type:'소식',member:'B',content:'카네이션꽃바구니·웨딩꽃장식·어버이날·스승의날·부부의날'},
+  {date:'2026.05',client:'청주 파티지니',plat:'카카오채널',type:'소식',member:'B',content:'회사창립기념일·하객도시락·홈파티케이터링박스·세미나도시락'},
+  {date:'2026.05',client:'영생어르신돌봄센터',plat:'네이버블로그',type:'블로그',member:'B',content:'셔플보드·단추실꿰기·노인신체활동·색칠놀이 포스팅'},
+  {date:'2026.05',client:'엘마켓21',plat:'카카오채널+당근',type:'소식',member:'H',content:'6월 콘텐츠 진행중'},
+  {date:'2026.05',client:'문덕 헬로부대특화거리 상가번영회',plat:'카카오채널',type:'소식',member:'P',content:'현대골프스크린·명태본가·준양한정식·홍스포차·오천닭갈비'},
+];
+function renderDiary(list){
+  const groups={};
+  list.forEach(e=>{if(!groups[e.client])groups[e.client]={client:e.client,logs:[]};groups[e.client].logs.push(e);});
+  document.getElementById('diary-list').innerHTML=Object.values(groups).map(g=>{
+    const cl=CLIENTS.find(c=>c.name===g.client)||{};
+    const isT=cl.status==='해지';
+    const totalLogs=g.logs.length;
+    return`<div class="client-diary${isT?' terminated':''}">
+      <div class="cd-header" onclick="toggleDiary(this)">
+        <div class="cd-name">
+          <span style="width:9px;height:9px;border-radius:50%;background:${cl.color||'#888'};display:inline-block"></span>
+          ${g.client}
+          ${cl.isNew?'<span class="badge" style="background:var(--teal-l);color:var(--teal);font-size:10px">신규</span>':''}
+          ${isT?'<span class="badge bg-r" style="font-size:10px">해지</span>':''}
+        </div>
+        <div class="cd-meta">
+          <div class="mdot-wrap" style="background:${MEMBER_COLOR[cl.member]||'#888'};width:20px;height:20px;font-size:9px">${cl.member||'?'}</div>
+          ${cl.platforms?.kakao?'<span class="pt pt-k">카카오</span>':''}
+          ${cl.platforms?.dangn?'<span class="pt pt-d">당근</span>':''}
+          ${cl.platforms?.nblog?'<span class="pt pt-nb">블로그</span>':''}
+          <span style="font-size:11px;color:var(--text3)">${totalLogs}건</span>
+          <span style="font-size:16px;color:var(--text3)">›</span>
+        </div>
+      </div>
+      <div class="cd-body hidden">
+        <div class="dr-stats">
+          <div class="dr-stat">총 기록 <strong>${totalLogs}건</strong></div>
+          <div class="dr-stat">서비스 <strong>${cl.service||'—'}</strong></div>
+          <div class="dr-stat">계약 <strong>${cl.contract||'—'}</strong></div>
+        </div>
+        ${g.logs.map(e=>`<div class="diary-row">
+          <div class="dr-date">${e.date}</div>
+          <div class="dr-content">
+            <div class="dr-title">${e.content}</div>
+            <div class="dr-tags"><span class="dr-tag">${e.type}</span><span class="dr-tag">${e.plat}</span><span class="dr-tag" style="background:${MEMBER_COLOR[e.member]||'#888'}20;color:${MEMBER_COLOR[e.member]||'#888'}">${e.member} 담당</span></div>
+          </div>
+        </div>`).join('')}
+        ${(cl.history||[]).map(h=>`<div class="diary-row">
+          <div class="dr-date">${h.date}</div>
+          <div class="dr-content">
+            <div class="dr-title">${h.content}</div>
+            <div class="dr-tags"><span class="dr-tag">${h.type}</span></div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleDiary(el){const body=el.nextElementSibling;const arrow=el.querySelector('span:last-child');body.classList.toggle('hidden');arrow.textContent=body.classList.contains('hidden')?'›':'‹';}
+function filterDiary(f,btn){
+  diaryFilter=f;
+  document.querySelectorAll('#page-diary .fbtn').forEach(b=>b.classList.remove('fa','fP','fH','fB'));
+  btn.classList.add(f==='P'?'fP':f==='H'?'fH':f==='B'?'fB':'fa');
+  let cl=CLIENTS;
+  if(f==='P'||f==='H'||f==='B') cl=cl.filter(c=>c.member===f);
+  const logs=diaryLogs.filter(l=>f==='전체'||CLIENTS.find(c=>c.name===l.client&&c.member===f));
+  const combined={};
+  cl.forEach(c=>{combined[c.name]={client:c.name,logs:logs.filter(l=>l.client===c.name)};});
+  document.getElementById('diary-list').innerHTML=Object.values(combined).map(g=>{
+    const c=CLIENTS.find(x=>x.name===g.client)||{};
+    const isT=c.status==='해지';
+    const allHistory=[...g.logs,...(c.history||[])];
+    return`<div class="client-diary${isT?' terminated':''}">
+      <div class="cd-header" onclick="toggleDiary(this)">
+        <div class="cd-name">
+          <span style="width:9px;height:9px;border-radius:50%;background:${c.color||'#888'};display:inline-block"></span>
+          ${g.client}
+          ${c.isNew?'<span class="badge" style="background:var(--teal-l);color:var(--teal);font-size:10px">신규</span>':''}
+          ${isT?'<span class="badge bg-r" style="font-size:10px">해지</span>':''}
+        </div>
+        <div class="cd-meta">
+          <div class="mdot-wrap" style="background:${MEMBER_COLOR[c.member]||'#888'};width:20px;height:20px;font-size:9px">${c.member||'?'}</div>
+          ${c.platforms?.kakao?'<span class="pt pt-k">카카오</span>':''}
+          ${c.platforms?.dangn?'<span class="pt pt-d">당근</span>':''}
+          ${c.platforms?.nblog?'<span class="pt pt-nb">블로그</span>':''}
+          <span style="font-size:11px;color:var(--text3)">${allHistory.length}건</span>
+          <span style="font-size:16px;color:var(--text3)">›</span>
+        </div>
+      </div>
+      <div class="cd-body hidden">
+        <div class="dr-stats">
+          <div class="dr-stat">서비스 <strong>${c.service||'—'}</strong></div>
+          <div class="dr-stat">계약 <strong>${c.contract||'—'}</strong></div>
+        </div>
+        ${allHistory.map(h=>`<div class="diary-row">
+          <div class="dr-date">${h.date}</div>
+          <div class="dr-content">
+            <div class="dr-title">${h.content}</div>
+            <div class="dr-tags"><span class="dr-tag">${h.type}</span>${h.plat?`<span class="dr-tag">${h.plat}</span>`:''}</div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+filterDiary('전체',{classList:{remove:()=>{},add:()=>{}}});
+renderDiary(diaryLogs);
+
+// ── 통계 ──
+let statsFilter='전체';
+function filterStats(f,btn){
+  statsFilter=f;
+  document.querySelectorAll('#page-stats .fbtn').forEach(b=>b.classList.remove('fa','fP','fH','fB'));
+  btn.classList.add(f==='P'?'fP':f==='H'?'fH':f==='B'?'fB':'fa');
+  renderStats();
+}
+function renderStats(){
+  const cl=CLIENTS.filter(c=>c.status!=='해지'&&(statsFilter==='전체'||c.member===statsFilter));
+  document.getElementById('stats-list').innerHTML=cl.map(c=>{
+    const hist=c.history||[];
+    const totalPosts=hist.reduce((a,h)=>{const cnt=(h.content.match(/·/g)||[]).length+1;return a+cnt;},0);
+    return`<div class="stat-section">
+      <div class="stat-head">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:10px;height:10px;border-radius:50%;background:${c.color}"></span>
+          <span>${c.name}</span>
+          ${c.isNew?'<span class="badge" style="background:var(--teal-l);color:var(--teal);font-size:10px">신규</span>':''}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div class="mdot-wrap" style="background:${MEMBER_COLOR[c.member]};width:20px;height:20px;font-size:9px">${c.member}</div>
+          <span class="badge ${STATUS_BADGE[c.status]||'bg-gr'}">${c.status}</span>
+        </div>
+      </div>
+      <div class="stat-body">
+        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px">
+          <div style="font-size:12px;color:var(--text2)">플랫폼: ${[c.platforms.kakao?'📣카카오':'',c.platforms.dangn?'🥕당근':'',c.platforms.nblog?'📝블로그':''].filter(Boolean).join(' ')}</div>
+          <div style="font-size:12px;color:var(--text2)">서비스: ${c.service}</div>
+          <div style="font-size:12px;color:var(--text2)">가입: ${c.type}</div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">누적 발행 현황 (엑셀 기반)</div>
+        ${hist.slice(0,4).map(h=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border)">
+          <span style="font-size:11px;color:var(--text3);min-width:55px">${h.date}</span>
+          <span class="dr-tag">${h.type}</span>
+          <span style="font-size:11px;color:var(--text2);flex:1">${h.content}</span>
+        </div>`).join('')}
+        <div style="margin-top:8px;font-size:12px;color:var(--text3);text-align:right">계약: ${c.contract}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+renderStats();
+
+// ── 마케팅 캘린더 ──
+const KDATA={
+  '2026-06-01':{c:{엘마켓21:['kakao','#6월라이브예고'],해도떡방아:['kakao','#당일생산떡'],누리플라워:['kakao','#6월꽃다발']}},
+  '2026-06-03':{c:{엘마켓21:['kakao','#지방선거D-3이벤트']}},
+  '2026-06-05':{c:{엘마켓21:['kakao','#환경의날·자연먹거리'],누리플라워:['kakao','#친환경꽃']}},
+  '2026-06-06':{c:{엘마켓21:['kakao','#현충일휴무'],해도떡방아:['kakao','#현충일휴무'],큰동해시장:['kakao','#휴무안내']}},
+  '2026-06-11':{c:{엘마켓21:['kakao','#월드컵개막이벤트'],'슬이네 제주해장국':['kakao','#월드컵응원해장국']}},
+  '2026-06-15':{c:{해도떡방아:['kakao','#도토리인절미'],'슬이네 제주해장국':['kakao','#기말고사해장국']}},
+  '2026-06-19':{c:{엘마켓21:['kakao','#단오·해신탕선물'],해도떡방아:['kakao','#단오·수리취떡'],혜인한복공방:['kakao','#단오·한복']}},
+  '2026-06-21':{c:{엘마켓21:['kakao','#하지·능이해신탕'],'슬이네 제주해장국':['kakao','#하지·보양식']}},
+  '2026-06-26':{c:{엘마켓21:['kakao','#EZ라이브'],누리플라워:['kakao','#원데이클래스']}},
+  '2026-06-29':{c:{엘마켓21:['kakao','#7월라이브예고'],해도떡방아:['kakao','#월말주문마감']}},
+  '2026-06-30':{c:{엘마켓21:['kakao','#6월결산'],누리플라워:['kakao','#6월마지막꽃']}},
+};
+const CC=Object.fromEntries(CLIENTS.map(c=>[c.name,c.color]));
+let kcalY=2026,kcalM=5;
+function renderKCal(){
+  document.getElementById('kcal-label').textContent=`${kcalY}년 ${MONTHS[kcalM]}`;
+  const body=document.getElementById('kcal-body');body.innerHTML='';
+  const first=new Date(kcalY,kcalM,1).getDay(),last=new Date(kcalY,kcalM+1,0).getDate();
+  for(let i=0;i<first;i++)body.innerHTML+=`<div class="kcal-day other cday"><div class="day-num">${new Date(kcalY,kcalM,0).getDate()-first+i+1}</div></div>`;
+  for(let d=1;d<=last;d++){
+    const key=`${kcalY}-${String(kcalM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(kcalY,kcalM,d).getDay();
+    const hol=HOLIDAYS[key];const isExam=EXAM_RANGE.includes(key);
+    const dd=KDATA[key]||{};const cns=Object.keys(dd.c||{});
+    let inner=`<div class="day-num" style="${dow===0?'color:var(--red)':''}">${d}</div>`;
+    if(hol)inner+=`<span class="holi-badge hb-${hol[0]==='공휴일'?'red':hol[0]==='절기'?'brown':'blue'}" style="display:block;margin-bottom:1px">${hol[1].substring(0,5)}</span>`;
+    if(isExam&&!hol)inner+=`<span class="holi-badge hb-brown" style="display:block;margin-bottom:1px">기말</span>`;
+    cns.slice(0,2).forEach(cn=>{const[plat,kw]=(dd.c[cn]||[]);inner+=`<span class="cki-text" style="font-size:8.5px;display:block;padding:1px 3px;margin-bottom:1px;border-radius:2px;background:${plat==='kakao'?'var(--kakao-l)':plat==='dangn'?'var(--dangn-l)':'var(--nblog-l)'};color:${CC[cn]||'#333'}">${cn.substring(0,4)}: ${kw||''}</span>`;});
+    if(cns.length>2)inner+=`<span style="font-size:8px;color:var(--text3)">+${cns.length-2}</span>`;
+    body.innerHTML+=`<div class="cday kcal-day${hol&&hol[0]==='공휴일'?' holi':''}" onclick="openKDetail('${key}','${d}일')">${inner}</div>`;
+  }
+  const rem=(first+last)%7===0?0:7-(first+last)%7;
+  for(let i=1;i<=rem;i++)body.innerHTML+=`<div class="cday other"><div class="day-num">${i}</div></div>`;
+}
+function openKDetail(key,label){
+  const hol=HOLIDAYS[key];const isExam=EXAM_RANGE.includes(key);const dd=KDATA[key];
+  document.getElementById('kcal-dtitle').textContent=`${kcalY}년 ${MONTHS[kcalM]} ${label}`;
+  let html='';
+  if(hol)html+=`<div class="holi-badge hb-${hol[0]==='공휴일'?'red':hol[0]==='절기'?'brown':'blue'}" style="display:inline-block;margin-bottom:10px;font-size:12px;padding:4px 10px">${hol[1]}</div><br>`;
+  if(isExam)html+=`<div class="holi-badge hb-brown" style="display:inline-block;margin-bottom:10px;font-size:12px;padding:4px 10px">기말고사 시즌 (6/15~6/26)</div><br>`;
+  if(!dd||!Object.keys(dd.c||{}).length){html+='<div style="font-size:13px;color:var(--text3)">등록된 키워드 없음</div>';}
+  else Object.entries(dd.c||{}).forEach(([cn,[plat,kw]])=>{
+    html+=`<div style="padding:8px 0;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;gap:8px">
+      <span style="width:8px;height:8px;border-radius:50%;background:${CC[cn]||'#888'};display:inline-block;margin-top:4px;flex-shrink:0"></span>
+      <div><div style="font-size:12px;font-weight:700">${cn} <span class="pt pt-${plat==='kakao'?'k':'d'}" style="font-size:10px">${PLAT_LABEL[plat]||plat}</span></div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px">${kw||''}</div></div>
+    </div>`;
+  });
+  document.getElementById('kcal-dbody').innerHTML=html;
+  document.getElementById('kcal-detail').style.display='block';
+  document.getElementById('kcal-detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function chMK(d){kcalM+=d;if(kcalM>11){kcalM=0;kcalY++;}if(kcalM<0){kcalM=11;kcalY--;}document.getElementById('kcal-detail').style.display='none';renderKCal();}
+
+// ── 채널 세팅 ──
+const SS=[
+  {s:'STEP 1',n:'비즈니스 채널 신청',i:['채널 신청 완료','심사 승인 확인','채널 공개 ON','검색 허용 ON']},
+  {s:'STEP 2',n:'월렛 신청 & 지원금',i:['비즈월렛 신청','지원금 신청 완료','지원금 입금 확인']},
+  {s:'STEP 3',n:'채널 서비스 연결',i:['매장관리 연결','예약하기 연결','챗봇 연결 유형 결정']},
+  {s:'STEP 4',n:'채널홈 구성',i:['카드 추천 유형 선택','프로필 이미지 640×640px','소개글 55자 작성','소식·쿠폰 카드 추가','카드 순서 정렬']},
+  {s:'STEP 5',n:'채팅 설정',i:['1:1 채팅 ON','채팅 요일/시간 설정','채팅불가 안내 메시지','자동응답 메시지 등록']},
+  {s:'STEP 6',n:'웰컴메시지',i:['내용 작성 400자','버튼 설정','테스트 발송','등록 완료']},
+  {s:'STEP 7',n:'소식·쿠폰 등록',i:['첫 소식 작성','발행시간 설정','카카오맵 동시 발행','쿠폰 등록']},
+  {s:'STEP 8',n:'매장 정보',i:['매장명·주소·전화번호','업종 선택','영업시간 설정','매장사진 등록','태그 추가']},
+];
+function renderSetup(){
+  document.getElementById('scklist').innerHTML=SS.map((s,si)=>`<div class="card" style="margin-bottom:10px">
+    <div class="ct"><span class="badge bg-b" style="margin-right:7px">${s.s}</span>${s.n}</div>
+    ${s.i.map((item,ii)=>`<div class="ci2"><input type="checkbox" id="s${si}${ii}"><label for="s${si}${ii}">${item}</label></div>`).join('')}
+  </div>`).join('');
+}
+renderSetup();
+
+// ── 마케팅 팁 ──
+const MT=[
+  {m:'6월 2026 — 주요 마케팅 이벤트',e:[
+    {d:'6/3',n:'지방선거',t:'엘마켓21: 투표 독려 이벤트 / 큰동해시장·문덕상가번영회: 선거일 특가 소식'},
+    {d:'6/5',n:'환경의 날',t:'누리플라워(B): #친환경꽃 / 미소힐링샵(P): #자연주의케어 / 엘마켓21(H): #자연먹거리'},
+    {d:'6/6',n:'현충일 공휴일',t:'전 업체 휴무 안내 소식 — 전날(6/5) 예약 발행 필수'},
+    {d:'6/11',n:'북중미 월드컵 개막',t:'슬이네(P): 응원 해장국 / 엘마켓21(H): 월드컵 이벤트 / 파티지니(B): 응원 케이터링'},
+    {d:'6/15~26',n:'기말고사 시즌',t:'슬이네(P): 수험생 해장국 / 파티지니(B): 도시락 케이터링 / 영생어르신(B): 블로그 포스팅'},
+    {d:'6/19',n:'단오 (절기)',t:'해도떡방아(B): #수리취떡 / 혜인한복공방(P): #단오한복 / 엘마켓21(H): #단오선물세트'},
+    {d:'6/21',n:'하지 (절기)',t:'슬이네(P): 하지 보양 해장국 / 엘마켓21(H): 능이해신탕 / 누리플라워(B): 여름꽃'},
+  ]},
+  {m:'담당자별 주요 일정',e:[
+    {d:'P 박신영',n:'혜인한복공방 신규세팅',t:'5월 계약 시작 → 8월에 신규 딱지 제거 (3개월 완료 시점)'},
+    {d:'P 박신영',n:'해지업체 재활성화',t:'소공유통·화현·허준건강마트·매산팜스 — 재계약 가능 여부 월초 확인'},
+    {d:'H 황정임',n:'엘마켓21 라이브',t:'6/10, 6/26 EZ라이브 예정 / 당근 스토리 발행 병행'},
+    {d:'B 배휘경',n:'영생어르신 블로그',t:'월 10회 발행 목표 — 6월 8건 완료 시 목표 달성'},
+    {d:'B 배휘경',n:'누리플라워 당근+블로그',t:'카카오·당근·블로그 3개 채널 동시 관리 — 우선순위 체크 필요'},
+  ]},
+];
+function renderMT(){document.getElementById('mtips').innerHTML=MT.map(m=>`<div class="card" style="margin-bottom:12px"><div class="ct">${m.m}</div>${m.e.map(e=>`<div class="tip-block"><div class="tip-title">${e.d} ${e.n}</div><div style="font-size:12px;color:var(--text2)">${e.t}</div></div>`).join('')}</div>`).join('');}
+renderMT();
+
+// ── 작업 추가 ──
+function openLogModal(){
+  const today=new Date();
+  const ymd=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  document.getElementById('ldate').value=ymd;
+  document.getElementById('log-modal').classList.add('open');
+}
+function closeLogModal(){document.getElementById('log-modal').classList.remove('open');}
+let selectedImages=[];
+function previewImages(input){
+  const files=Array.from(input.files).slice(0,5);selectedImages=files;
+  const preview=document.getElementById('img-preview');preview.innerHTML='';
+  files.forEach((f,i)=>{const reader=new FileReader();reader.onload=e=>{const div=document.createElement('div');div.style.cssText='position:relative;width:60px;height:60px;flex-shrink:0';div.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"><span onclick="removeImg(${i})" style="position:absolute;top:-4px;right:-4px;background:#E24B4A;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer">×</span>`;preview.appendChild(div);};reader.readAsDataURL(f);});
+  document.getElementById('img-drop-area').style.background=files.length?'var(--green-l)':'var(--bg3)';
+}
+function removeImg(i){
+  selectedImages.splice(i,1);
+  const preview=document.getElementById('img-preview');preview.innerHTML='';
+  selectedImages.forEach((f,idx)=>{const reader=new FileReader();reader.onload=e=>{const div=document.createElement('div');div.style.cssText='position:relative;width:60px;height:60px;flex-shrink:0';div.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"><span onclick="removeImg(${idx})" style="position:absolute;top:-4px;right:-4px;background:#E24B4A;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer">×</span>`;preview.appendChild(div);};reader.readAsDataURL(f);});
+  document.getElementById('img-drop-area').style.background=selectedImages.length?'var(--green-l)':'var(--bg3)';
+}
+let GAS_URL=(()=>{try{return localStorage.getItem('elm21_gas_url')||'';}catch(e){return '';}})();
+function saveGASUrl(){
+  const url=document.getElementById('gas-url-input').value.trim();
+  GAS_URL=url;try{localStorage.setItem('elm21_gas_url',url);}catch(e){}
+  const msg=document.getElementById('gas-save-msg');msg.style.display='inline';
+  const dot=document.getElementById('gas-status-dot');dot.textContent=url?'🟢 연동 설정됨':'⚪ 미설정';
+  setTimeout(()=>msg.style.display='none',2000);
+}
+function copyGASCode(){
+  const code=document.getElementById('gas-code-block').textContent;
+  navigator.clipboard&&navigator.clipboard.writeText(code).then(()=>{const m=document.getElementById('copy-msg');m.style.display='inline';setTimeout(()=>m.style.display='none',2000);});
+}
+async function addLog(){
+  const dateRaw=document.getElementById('ldate').value;
+  if(!dateRaw){alert('날짜를 선택해주세요.');return;}
+  const date=dateRaw.replace(/-/g,'.');
+  const client=document.getElementById('lclient').value.replace('(해지)','').trim();
+  const plat=document.getElementById('lplat').value;
+  const type=document.getElementById('ltype').value;
+  const member=document.getElementById('lmember').value;
+  const content=document.getElementById('lcontent').value||'내용 없음';
+  const memberName={P:'박신영',H:'황정임',B:'배휘경',K:'김옥진'}[member]||member;
+  const statusEl=document.getElementById('sheet-status');
+  const btn=document.getElementById('save-btn');
+  diaryLogs.unshift({date,client,plat,type,member,content});
+  const resetModal=()=>{document.getElementById('lcontent').value='';document.getElementById('img-preview').innerHTML='';document.getElementById('img-drop-area').style.background='';selectedImages=[];};
+  if(GAS_URL){
+    btn.disabled=true;btn.textContent='전송중...';
+    statusEl.style.cssText='display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--amber-l);color:var(--amber-d)';
+    statusEl.textContent='⏳ 구글 시트에 저장 중...';
+    try{
+      const imgList=await Promise.all(selectedImages.map(f=>new Promise(res=>{const r=new FileReader();r.onload=e=>res({name:f.name,size:f.size,data:e.target.result});r.readAsDataURL(f);})));
+      const payload={date:dateRaw,yearMonth:dateRaw.slice(0,7),client,assignee:`${member} ${memberName}`,content,type,platform:plat,status:'진행중',memo:'',imageCount:imgList.length,images:imgList,timestamp:new Date().toISOString()};
+      const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+      const json=await res.json();
+      if(json.result==='success'){
+        statusEl.style.cssText='display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--green-l);color:var(--green-d)';
+        statusEl.textContent='✅ 구글 시트 저장 완료!';
+        setTimeout(()=>{statusEl.style.display='none';resetModal();closeLogModal();renderDiary(diaryLogs);},1200);
+      }else{throw new Error(json.msg||'저장 실패');}
+    }catch(err){
+      statusEl.style.cssText='display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--red-l);color:var(--red)';
+      statusEl.textContent=`⚠️ 시트 저장 실패 (로컬만 저장됨): ${err.message}`;
+      setTimeout(()=>{statusEl.style.display='none';resetModal();closeLogModal();renderDiary(diaryLogs);},2500);
+    }
+    btn.disabled=false;btn.textContent='저장 → 시트전송';
+  }else{
+    statusEl.style.cssText='display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--amber-l);color:var(--amber-d)';
+    statusEl.textContent='⚠️ GAS URL 미설정 — 로컬에만 저장됩니다. (⚙️채널 세팅 체크에서 URL 입력)';
+    setTimeout(()=>{statusEl.style.display='none';resetModal();closeLogModal();renderDiary(diaryLogs);},2000);
+  }
+}
+
+// ── 페이지 전환 ──
+const PTITLES={dashboard:'현황 대시보드',tracker:'콘텐츠 트래커',clients:'전체 업체 목록',diary:'업체별 다이어리',stats:'통계 & 보고서',calendar:'마케팅 캘린더',setup:'채널 세팅 체크',marketing:'마케팅 팁',contract:'계약 현황'};
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('page-title').textContent=PTITLES[id]||id;
+  closeSidebar();renderAll();
+}
+function showTTab(id,el){
+  document.querySelectorAll('.tview').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.ttab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tview-'+id).classList.add('active');
+  el.classList.add('active');renderAll();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-ov').classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
+
+function renderAll(){renderDash();renderBoss();renderCal();renderKCal();}
+renderAll();
+(function(){
+  const today=new Date();
+  const ymd=today.getFullYear()+'.'+String(today.getMonth()+1).padStart(2,'0')+'.'+String(today.getDate()).padStart(2,'0');
+  const el=document.getElementById('today-date');if(el)el.textContent=ymd;
+  try{
+    const saved=localStorage.getItem('elm21_gas_url')||'';
+    GAS_URL=saved;
+    const inp=document.getElementById('gas-url-input');if(inp)inp.value=saved;
+    const dot=document.getElementById('gas-status-dot');if(dot)dot.textContent=saved?'🟢 연동 설정됨':'⚪ URL 미설정 — ⚙️채널 세팅 체크에서 입력하세요';
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
