@@ -1522,7 +1522,7 @@ async function loadFromSheet() {
   const dot = document.getElementById('gas-status-dot');
   if(dot) dot.textContent = '⏳ 시트에서 불러오는 중...';
   try {
-    const res = await fetch(GAS_URL + '?t=' + Date.now());
+    const res = await fetch(GAS_URL + '?action=read&t=' + Date.now());
     const json = await res.json();
     if(json.result === 'success' && json.data && json.data.length > 0) {
       const sheetLogs = json.data.map(function(r) {
