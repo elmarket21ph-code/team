@@ -1528,12 +1528,12 @@ async function loadFromSheet() {
   const dot = document.getElementById('gas-status-dot');
   if(dot) dot.textContent = '⏳ 시트에서 불러오는 중...';
   try {
-    const res = await fetch(GAS_URL + '?t=' + Date.now());
+    const res = await fetch(GAS_URL + '?action=read&t=' + Date.now());
     const json = await res.json();
     if(json.result === 'success' && json.data && json.data.length > 0) {
       const sheetLogs = json.data.map(function(r) {
         const memberCode = r.assignee ? r.assignee.split(' ')[0] : 'P';
-        return {date: r.date, client: r.client, plat: r.platform||'카카오채널', type: r.type||'소식', member: memberCode, content: r.content, fromSheet: true};
+        return {date: (function(){var ym=String(r.yearMonth||'').substring(0,7).replace(/-/g,'.');var dd=String(r.date||'').padStart(2,'0');return ym&&r.date?ym+'.'+dd:String(r.date||'')})(), client: r.client, plat: r.platform||'카카오채널', type: r.type||'소식', member: memberCode, content: r.content, fromSheet: true};
       }).filter(function(r) { return r.client && r.content; });
       const localOnly = diaryLogs.filter(function(l) { return !l.fromSheet; });
       diaryLogs = sheetLogs.concat(localOnly);
