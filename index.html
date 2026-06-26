@@ -1615,7 +1615,7 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
 
   // ── 구글 시트 연동 함수 ──
-let GAS_URL='https://script.google.com/macros/s/AKfycbxzrKi49R0olCNB5ML-ykRMQtMMJm7fawvH3w4SR3RQMwqU0CSJEiANrzifF5yA_JQT/exec';
+GAS_URL='https://script.google.com/macros/s/AKfycbxzrKi49R0olCNB5ML-ykRMQtMMJm7fawvH3w4SR3RQMwqU0CSJEiANrzifF5yA_JQT/exec';
 async function loadFromSheet(){
   const dot=document.getElementById('gas-status-dot');
   try{
