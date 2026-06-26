@@ -1621,7 +1621,7 @@ async function loadFromSheet(){
   try{
     const res=await fetch(GAS_URL+'?action=read');
     const json=await res.json();
-    if(!json.ok)throw new Error(json.error);
+    if(!json.ok && json.result!=='success')throw new Error(json.error||'연동 실패');
     const rows=json.data;
     // PLAN 업데이트
     const newPlan={};
