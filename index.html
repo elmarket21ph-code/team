@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>엘마켓21 — 통합 관리 대시보드 v4</title>
+<title>엘마켓21 — 통합 관리 대시보드 v5</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -269,7 +269,7 @@ tr:hover td{background:var(--bg3)}
       <span class="mbadge mb-B">B 배휘경</span>
       <span class="mbadge mb-K">K 김옥진(대표)</span>
     </div>
-    <div style="font-size:10px;color:var(--text3);margin-top:8px">2026.06.24 기준</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:8px">2026.06.25 기준</div>
   </div>
 </div>
 
@@ -281,7 +281,7 @@ tr:hover td{background:var(--bg3)}
       <h2 id="page-title">현황 대시보드</h2>
     </div>
     <div style="display:flex;gap:7px;align-items:center">
-      <span style="font-size:11px;color:var(--text3)" id="today-date"></span>
+      <span style="font-size:11px;color:var(--text3)" id="today-date">2026.06.25</span>
       <button class="btn-p" style="font-size:12px;padding:5px 12px" onclick="openLogModal()">＋ 작업 추가</button>
     </div>
   </div>
@@ -444,21 +444,37 @@ tr:hover td{background:var(--bg3)}
     <div class="card" style="border:1.5px solid var(--green);margin-bottom:14px">
       <div class="ct" style="color:var(--green)">🔗 구글 시트 자동 저장 연동</div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.8">
-        Google Apps Script 웹앱 URL을 입력하면 <strong>작업 추가</strong> 시 구글 시트에 자동으로 행이 추가됩니다.
+        Apps Script URL을 저장하면 <strong>작업 추가 시 구글 시트에 저장</strong>되고, 🔄 버튼으로 시트 데이터를 앱에 불러올 수 있어요.
       </div>
       <div class="fr" style="margin-bottom:8px">
         <label>Apps Script 웹앱 URL</label>
-        <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/..." 
+        <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/..."
           style="width:100%;padding:7px 10px;font-size:12px;border:0.5px solid var(--border2);border-radius:var(--rs);background:var(--bg2);color:var(--text);font-family:inherit;margin-top:4px">
       </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <button class="btn-p" style="font-size:12px;padding:6px 14px" onclick="saveGASUrl()">저장</button>
+        <button class="btn-s" style="font-size:12px;padding:6px 14px" onclick="loadFromSheet()">🔄 시트에서 불러오기</button>
         <span id="gas-save-msg" style="font-size:11px;color:var(--green);display:none">✅ 저장됨!</span>
         <span id="gas-status-dot" style="font-size:11px;color:var(--text3)"></span>
       </div>
       <div style="margin-top:12px;background:var(--bg3);border-radius:var(--rs);padding:10px 12px">
-        <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:6px">📋 Apps Script 코드 — 구글 시트에 붙여넣기</div>
-        <pre id="gas-code-block" style="font-size:10px;color:var(--text2);white-space:pre-wrap;line-height:1.6;font-family:monospace;max-height:160px;overflow:auto">function doPost(e) {
+        <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:6px">📋 Apps Script 코드 (구글 시트 → 확장 프로그램 → Apps Script에 붙여넣기)</div>
+        <pre id="gas-code-block" style="font-size:10px;color:var(--text2);white-space:pre-wrap;line-height:1.6;font-family:monospace;max-height:160px;overflow:auto">function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("작업현황");
+  if (!sheet || sheet.getLastRow() < 2) {
+    return ContentService.createTextOutput(JSON.stringify({result:"success",data:[]}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var rows = sheet.getRange(2,1,sheet.getLastRow()-1,12).getValues();
+  var data = rows.map(function(r){
+    return {yearMonth:r[0],date:String(r[1]).slice(0,10),client:r[2],assignee:r[3],
+      content:r[4],type:r[5],platform:r[6],status:r[7],done:r[8],memo:r[9],imageCount:r[10],timestamp:r[11]};
+  });
+  return ContentService.createTextOutput(JSON.stringify({result:"success",data:data}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -466,11 +482,8 @@ tr:hover td{background:var(--bg3)}
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(["연월","날짜","업체명","담당자","작업내용","유형","플랫폼","상태","완료","메모","이미지수","입력시각"]);
     }
-    sheet.appendRow([
-      data.yearMonth, data.date, data.client, data.assignee,
-      data.content, data.type, data.platform, "진행중",
-      false, data.memo||"", (data.imageCount||0)+"장", new Date()
-    ]);
+    sheet.appendRow([data.yearMonth,data.date,data.client,data.assignee,
+      data.content,data.type,data.platform,"진행중",false,data.memo||"",(data.imageCount||0)+"장",new Date()]);
     return ContentService.createTextOutput(JSON.stringify({result:"success"}))
       .setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
@@ -1448,69 +1461,137 @@ function openLogModal(){
   document.getElementById('log-modal').classList.add('open');
 }
 function closeLogModal(){document.getElementById('log-modal').classList.remove('open');}
-let selectedImages=[];
-function previewImages(input){
-  const files=Array.from(input.files).slice(0,5);selectedImages=files;
-  const preview=document.getElementById('img-preview');preview.innerHTML='';
-  files.forEach((f,i)=>{const reader=new FileReader();reader.onload=e=>{const div=document.createElement('div');div.style.cssText='position:relative;width:60px;height:60px;flex-shrink:0';div.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"><span onclick="removeImg(${i})" style="position:absolute;top:-4px;right:-4px;background:#E24B4A;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer">×</span>`;preview.appendChild(div);};reader.readAsDataURL(f);});
-  document.getElementById('img-drop-area').style.background=files.length?'var(--green-l)':'var(--bg3)';
+// ── GAS URL ──
+let GAS_URL = (function() { try { return localStorage.getItem('elm21_gas_url') || 'https://script.google.com/macros/s/AKfycbx1WJD8jFryXe1IvQVErzDEOVGhBjNm0vmqwOfaa4iPNvEtlrIK8DSvMenF4c9zjR7z/exec'; } catch(e) { return 'https://script.google.com/macros/s/AKfycbx1WJD8jFryXe1IvQVErzDEOVGhBjNm0vmqwOfaa4iPNvEtlrIK8DSvMenF4c9zjR7z/exec'; } })();
+
+// ── 이미지 미리보기 ──
+let selectedImages = [];
+function previewImages(input) {
+  const files = Array.from(input.files).slice(0,5); selectedImages = files;
+  const preview = document.getElementById('img-preview'); preview.innerHTML = '';
+  files.forEach(function(f,i) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const div = document.createElement('div');
+      div.style.cssText = 'position:relative;width:60px;height:60px;flex-shrink:0';
+      div.innerHTML = '<img src="'+e.target.result+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">'
+        + '<span onclick="removeImg('+i+')" style="position:absolute;top:-4px;right:-4px;background:#E24B4A;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer">×</span>';
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(f);
+  });
+  document.getElementById('img-drop-area').style.background = files.length ? 'var(--green-l)' : 'var(--bg3)';
 }
-function removeImg(i){
+function removeImg(i) {
   selectedImages.splice(i,1);
-  const preview=document.getElementById('img-preview');preview.innerHTML='';
-  selectedImages.forEach((f,idx)=>{const reader=new FileReader();reader.onload=e=>{const div=document.createElement('div');div.style.cssText='position:relative;width:60px;height:60px;flex-shrink:0';div.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"><span onclick="removeImg(${idx})" style="position:absolute;top:-4px;right:-4px;background:#E24B4A;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer">×</span>`;preview.appendChild(div);};reader.readAsDataURL(f);});
-  document.getElementById('img-drop-area').style.background=selectedImages.length?'var(--green-l)':'var(--bg3)';
+  const preview = document.getElementById('img-preview'); preview.innerHTML = '';
+  selectedImages.forEach(function(f,idx) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const div = document.createElement('div');
+      div.style.cssText = 'position:relative;width:60px;height:60px;flex-shrink:0';
+      div.innerHTML = '<img src="'+e.target.result+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">'
+        + '<span onclick="removeImg('+idx+')" style="position:absolute;top:-4px;right:-4px;background:#E24B4A;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer">×</span>';
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(f);
+  });
+  document.getElementById('img-drop-area').style.background = selectedImages.length ? 'var(--green-l)' : 'var(--bg3)';
 }
-let GAS_URL=(()=>{try{return localStorage.getItem('elm21_gas_url')||'';}catch(e){return '';}})();
-function saveGASUrl(){
-  const url=document.getElementById('gas-url-input').value.trim();
-  GAS_URL=url;try{localStorage.setItem('elm21_gas_url',url);}catch(e){}
-  const msg=document.getElementById('gas-save-msg');msg.style.display='inline';
-  const dot=document.getElementById('gas-status-dot');dot.textContent=url?'🟢 연동 설정됨':'⚪ 미설정';
-  setTimeout(()=>msg.style.display='none',2000);
+
+// ── GAS 설정 ──
+function saveGASUrl() {
+  const url = document.getElementById('gas-url-input').value.trim();
+  if(url) GAS_URL = url;
+  try { localStorage.setItem('elm21_gas_url', GAS_URL); } catch(e) {}
+  const msg = document.getElementById('gas-save-msg'); msg.style.display = 'inline';
+  const dot = document.getElementById('gas-status-dot'); dot.textContent = GAS_URL ? '🟢 연동 설정됨' : '⚪ 미설정';
+  setTimeout(function() { msg.style.display='none'; }, 2000);
 }
-function copyGASCode(){
-  const code=document.getElementById('gas-code-block').textContent;
-  navigator.clipboard&&navigator.clipboard.writeText(code).then(()=>{const m=document.getElementById('copy-msg');m.style.display='inline';setTimeout(()=>m.style.display='none',2000);});
+function copyGASCode() {
+  const code = document.getElementById('gas-code-block').textContent;
+  navigator.clipboard && navigator.clipboard.writeText(code).then(function() {
+    const m = document.getElementById('copy-msg'); m.style.display='inline';
+    setTimeout(function() { m.style.display='none'; }, 2000);
+  });
 }
-async function addLog(){
-  const dateRaw=document.getElementById('ldate').value;
-  if(!dateRaw){alert('날짜를 선택해주세요.');return;}
-  const date=dateRaw.replace(/-/g,'.');
-  const client=document.getElementById('lclient').value.replace('(해지)','').trim();
-  const plat=document.getElementById('lplat').value;
-  const type=document.getElementById('ltype').value;
-  const member=document.getElementById('lmember').value;
-  const content=document.getElementById('lcontent').value||'내용 없음';
-  const memberName={P:'박신영',H:'황정임',B:'배휘경',K:'김옥진'}[member]||member;
-  const statusEl=document.getElementById('sheet-status');
-  const btn=document.getElementById('save-btn');
-  diaryLogs.unshift({date,client,plat,type,member,content});
-  const resetModal=()=>{document.getElementById('lcontent').value='';document.getElementById('img-preview').innerHTML='';document.getElementById('img-drop-area').style.background='';selectedImages=[];};
-  if(GAS_URL){
-    btn.disabled=true;btn.textContent='전송중...';
-    statusEl.style.cssText='display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--amber-l);color:var(--amber-d)';
-    statusEl.textContent='⏳ 구글 시트에 저장 중...';
-    try{
-      const imgList=await Promise.all(selectedImages.map(f=>new Promise(res=>{const r=new FileReader();r.onload=e=>res({name:f.name,size:f.size,data:e.target.result});r.readAsDataURL(f);})));
-      const payload={date:dateRaw,yearMonth:dateRaw.slice(0,7),client,assignee:`${member} ${memberName}`,content,type,platform:plat,status:'진행중',memo:'',imageCount:imgList.length,images:imgList,timestamp:new Date().toISOString()};
-      const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
-      const json=await res.json();
-      if(json.result==='success'){
-        statusEl.style.cssText='display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--green-l);color:var(--green-d)';
-        statusEl.textContent='✅ 구글 시트 저장 완료!';
-        setTimeout(()=>{statusEl.style.display='none';resetModal();closeLogModal();renderDiary(diaryLogs);},1200);
-      }else{throw new Error(json.msg||'저장 실패');}
-    }catch(err){
-      statusEl.style.cssText='display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--red-l);color:var(--red)';
-      statusEl.textContent=`⚠️ 시트 저장 실패 (로컬만 저장됨): ${err.message}`;
-      setTimeout(()=>{statusEl.style.display='none';resetModal();closeLogModal();renderDiary(diaryLogs);},2500);
+
+// ── 시트에서 불러오기 ──
+async function loadFromSheet() {
+  if(!GAS_URL) return;
+  const dot = document.getElementById('gas-status-dot');
+  if(dot) dot.textContent = '⏳ 시트에서 불러오는 중...';
+  try {
+    const res = await fetch(GAS_URL + '?t=' + Date.now());
+    const json = await res.json();
+    if(json.result === 'success' && json.data && json.data.length > 0) {
+      const sheetLogs = json.data.map(function(r) {
+        const memberCode = r.assignee ? r.assignee.split(' ')[0] : 'P';
+        return {date: r.date, client: r.client, plat: r.platform||'카카오채널', type: r.type||'소식', member: memberCode, content: r.content, fromSheet: true};
+      }).filter(function(r) { return r.client && r.content; });
+      const localOnly = diaryLogs.filter(function(l) { return !l.fromSheet; });
+      diaryLogs = sheetLogs.concat(localOnly);
+      renderDiary(diaryLogs);
+      renderAll();
+      if(dot) dot.textContent = '🟢 ' + sheetLogs.length + '건 불러옴 (' + new Date().toLocaleTimeString('ko') + ')';
+    } else {
+      if(dot) dot.textContent = '⚪ 시트에 데이터 없음';
     }
-    btn.disabled=false;btn.textContent='저장 → 시트전송';
-  }else{
-    statusEl.style.cssText='display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--amber-l);color:var(--amber-d)';
-    statusEl.textContent='⚠️ GAS URL 미설정 — 로컬에만 저장됩니다. (⚙️채널 세팅 체크에서 URL 입력)';
-    setTimeout(()=>{statusEl.style.display='none';resetModal();closeLogModal();renderDiary(diaryLogs);},2000);
+  } catch(err) {
+    if(dot) dot.textContent = '⚠️ 불러오기 실패: ' + err.message;
+  }
+}
+
+// ── 작업 추가 ──
+async function addLog() {
+  const dateRaw = document.getElementById('ldate').value;
+  if(!dateRaw) { alert('날짜를 선택해주세요.'); return; }
+  const date = dateRaw.replace(/-/g, '.');
+  const client = document.getElementById('lclient').value.replace('(해지)','').trim();
+  const plat = document.getElementById('lplat').value;
+  const type = document.getElementById('ltype').value;
+  const member = document.getElementById('lmember').value;
+  const content = document.getElementById('lcontent').value || '내용 없음';
+  const memberNames = {P:'박신영',H:'황정임',B:'배휘경',K:'김옥진'};
+  const memberName = memberNames[member] || member;
+  const statusEl = document.getElementById('sheet-status');
+  const btn = document.getElementById('save-btn');
+  diaryLogs.unshift({date, client, plat, type, member, content, fromSheet: false});
+  function resetModal() {
+    document.getElementById('lcontent').value = '';
+    document.getElementById('img-preview').innerHTML = '';
+    document.getElementById('img-drop-area').style.background = '';
+    selectedImages = [];
+  }
+  if(GAS_URL) {
+    btn.disabled = true; btn.textContent = '전송중...';
+    statusEl.style.cssText = 'display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--amber-l);color:var(--amber-d)';
+    statusEl.textContent = '⏳ 구글 시트에 저장 중...';
+    try {
+      const imgList = await Promise.all(selectedImages.map(function(f) {
+        return new Promise(function(res) {
+          const r = new FileReader();
+          r.onload = function(e) { res({name:f.name, size:f.size, data:e.target.result}); };
+          r.readAsDataURL(f);
+        });
+      }));
+      const payload = {date:dateRaw, yearMonth:dateRaw.slice(0,7), client, assignee:member+' '+memberName,
+        content, type, platform:plat, status:'진행중', memo:'', imageCount:imgList.length, timestamp:new Date().toISOString()};
+      const res = await fetch(GAS_URL, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+      const json = await res.json();
+      if(json.result === 'success') {
+        statusEl.style.cssText = 'display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--green-l);color:var(--green-d)';
+        statusEl.textContent = '✅ 구글 시트 저장 완료!';
+        setTimeout(function() { statusEl.style.display='none'; resetModal(); closeLogModal(); renderDiary(diaryLogs); renderAll(); }, 1200);
+      } else { throw new Error(json.msg || '저장 실패'); }
+    } catch(err) {
+      statusEl.style.cssText = 'display:block;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:var(--red-l);color:var(--red)';
+      statusEl.textContent = '⚠️ 시트 저장 실패 (로컬만 저장됨): ' + err.message;
+      setTimeout(function() { statusEl.style.display='none'; resetModal(); closeLogModal(); renderDiary(diaryLogs); renderAll(); }, 2500);
+    }
+    btn.disabled = false; btn.textContent = '저장 → 시트전송';
+  } else {
+    resetModal(); closeLogModal(); renderDiary(diaryLogs); renderAll();
   }
 }
 
@@ -1535,16 +1616,20 @@ function closeSidebar(){document.getElementById('sidebar').classList.remove('ope
 
 function renderAll(){renderDash();renderBoss();renderCal();renderKCal();}
 renderAll();
+// ── 초기화 ──
 (function(){
   const today=new Date();
   const ymd=today.getFullYear()+'.'+String(today.getMonth()+1).padStart(2,'0')+'.'+String(today.getDate()).padStart(2,'0');
   const el=document.getElementById('today-date');if(el)el.textContent=ymd;
   try{
-    const saved=localStorage.getItem('elm21_gas_url')||'';
-    GAS_URL=saved;
-    const inp=document.getElementById('gas-url-input');if(inp)inp.value=saved;
-    const dot=document.getElementById('gas-status-dot');if(dot)dot.textContent=saved?'🟢 연동 설정됨':'⚪ URL 미설정 — ⚙️채널 세팅 체크에서 입력하세요';
+    const saved=localStorage.getItem('elm21_gas_url');
+    if(saved)GAS_URL=saved;
+    const inp=document.getElementById('gas-url-input');
+    if(inp)inp.value=GAS_URL||'';
+    const dot=document.getElementById('gas-status-dot');
+    if(dot)dot.textContent=GAS_URL?'🟢 연동 설정됨':'⚪ URL 미설정';
   }catch(e){}
+  if(GAS_URL){ setTimeout(loadFromSheet,800); }
 })();
 </script>
 </body>
